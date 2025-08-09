@@ -1,351 +1,172 @@
-# vibe-check
-Vibe check or coding agents
+# Vibe Check - AI Coding Agent Benchmark Framework
 
-# Simple Continue POC Setup for Human-in-the-Loop Agentic Programming Benchmark
+A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test and compare how different AI models perform on real coding tasks with human collaboration.
 
-This is a minimal setup to test human-in-the-loop agentic programming locally using Continue with multiple models.
+## Quick Start
 
-## Quick Setup (15 minutes)
+### Prerequisites
 
-### 1. Install Continue
+- Python 3.8+
+- Git (for tracking code changes)
+- [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (optional)
+- [Ollama](https://ollama.com/) for local models (optional)
 
-- Install the [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
-- Install [Ollama](https://ollama.com/) for local models
-
-### 2. Download Local Models
+### Installation
 
 ```bash
-# Fast local models for testing
-ollama pull qwen2.5-coder:7b    # Good coding model
-ollama pull llama3.1:8b         # General purpose
-ollama pull codestral:22b       # Mistral's code model (if you have enough RAM)
+# Clone the repository
+git clone https://github.com/bdougie/vibe-check.git
+cd vibe-check
 
-# Smaller models if RAM constrained
-ollama pull qwen2.5-coder:1.5b  # Minimal coding model
-ollama pull llama3.2:3b         # Lightweight general
-
+# No additional dependencies required - uses Python standard library
 ```
 
-### 3. Continue Configuration
+## Usage
 
-Open Continue settings and replace your `config.yaml` with:
+### 1. Run a Benchmark Task
 
-```yaml
-models:
-  # Commercial APIs (add your keys)
-  - name: "Claude-4-Sonnet"
-    provider: "anthropic"
-    model: "claude-3-5-sonnet-20241022"
-    apiKey: "your-api-key"
-    roles: ["chat", "edit", "apply"]
-
-  - name: "GPT-4o"
-    provider: "openai"
-    model: "gpt-4o"
-    apiKey: "your-api-key"
-    roles: ["chat", "edit", "apply"]
-
-  # Local models via Ollama
-  - name: "Qwen2.5-Coder-7B"
-    provider: "ollama"
-    model: "qwen2.5-coder:7b"
-    roles: ["chat", "edit", "apply"]
-
-  - name: "Llama3.1-8B"
-    provider: "ollama"
-    model: "llama3.1:8b"
-    roles: ["chat", "edit", "apply"]
-
-  - name: "Codestral-22B"
-    provider: "ollama"
-    model: "codestral:22b"
-    roles: ["chat", "edit", "apply"]
-
-# Context providers for better understanding
-contextProviders:
-  - name: "code"
-    params: {}
-  - name: "diff"
-    params: {}
-  - name: "terminal"
-    params: {}
-  - name: "problems"
-    params: {}
-  - name: "folder"
-    params: {}
-
-# Custom commands for benchmarking
-slashCommands:
-  - name: "benchmark-task"
-    description: "Start a benchmarking task with metrics"
-    run: "benchmark_task.py"
-
+```bash
+python benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
 ```
 
-## POC Benchmark Framework
+Example with specific models:
+```bash
+# Commercial models
+python benchmark/task_runner.py "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+python benchmark/task_runner.py "GPT-4o" "benchmark/tasks/medium/add_validation.md"
 
-### 4. Create Benchmark Tasks
-
-Create a `benchmark/` folder in your project:
-
-```
-benchmark/
-├── tasks/
-│   ├── easy/
-│   ├── medium/
-│   └── hard/
-├── metrics.py
-├── task_runner.py
-└── results/
-
+# Local models (via Ollama)
+python benchmark/task_runner.py "Qwen2.5-Coder-7B" "benchmark/tasks/easy/add_gitignore_entry.md"
 ```
 
-### 5. Simple Task Examples
+### 2. View Available Tasks
 
-**Easy Task** (`tasks/easy/fix_typo.md`):
-
-```markdown
-# Task: Fix Documentation Typo
-**Repo**: Your current project
-**Issue**: There's a typo in the README.md file where "recieve" should be "receive"
-**Expected**: Fix the typo and ensure it doesn't appear elsewhere
-**Time Estimate**: 2-5 minutes
-
+```bash
+python benchmark/task_runner.py
 ```
 
-**Medium Task** (`tasks/medium/add_validation.md`):
+This will list all available benchmark tasks organized by difficulty:
+- **Easy**: Simple fixes and additions (2-5 minutes)
+- **Medium**: Feature additions and validations (15-30 minutes)  
+- **Hard**: Refactoring and system design (1-3 hours)
 
-```markdown
-# Task: Add Input Validation
-**Repo**: Your current project
-**Issue**: Add email validation to a user registration function
-**Requirements**:
-- Validate email format
-- Return appropriate error messages
-- Add unit tests
-**Time Estimate**: 15-30 minutes
+### 3. Analyze Results
 
+View aggregated benchmark results:
+```bash
+python benchmark/analyze.py
 ```
 
-**Hard Task** (`tasks/hard/refactor_api.md`):
-
-```markdown
-# Task: Refactor API Response Structure
-**Repo**: Your current project
-**Issue**: Standardize API responses across endpoints
-**Requirements**:
-- Create consistent response wrapper
-- Update all endpoints
-- Maintain backward compatibility
-**Time Estimate**: 1-2 hours
-
+Export results to CSV for further analysis:
+```bash
+python benchmark/analyze.py --export
 ```
 
-### 6. Simple Metrics Tracker
+### 4. Continue Integration (Optional)
 
-Create `benchmark/metrics.py`:
-
-```python
-import time
-import json
-from datetime import datetime
-
-class BenchmarkMetrics:
-    def __init__(self, model_name, task_name):
-        self.model_name = model_name
-        self.task_name = task_name
-        self.start_time = None
-        self.metrics = {
-            'model': model_name,
-            'task': task_name,
-            'prompts_sent': 0,
-            'chars_sent': 0,
-            'chars_received': 0,
-            'human_interventions': 0,
-            'task_completed': False,
-            'completion_time': 0,
-            'files_modified': 0,
-            'lines_added': 0,
-            'lines_removed': 0,
-            'session_log': []
-        }
-
-    def start_task(self):
-        self.start_time = time.time()
-        self.log_event('task_started')
-
-    def log_prompt(self, prompt_text, response_text):
-        self.metrics['prompts_sent'] += 1
-        self.metrics['chars_sent'] += len(prompt_text)
-        self.metrics['chars_received'] += len(response_text)
-        self.log_event('prompt_sent', {
-            'prompt_length': len(prompt_text),
-            'response_length': len(response_text)
-        })
-
-    def log_human_intervention(self, intervention_type):
-        self.metrics['human_interventions'] += 1
-        self.log_event('human_intervention', {'type': intervention_type})
-
-    def complete_task(self, success=True):
-        if self.start_time:
-            self.metrics['completion_time'] = time.time() - self.start_time
-        self.metrics['task_completed'] = success
-        self.log_event('task_completed', {'success': success})
-
-        # Save results
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"benchmark/results/{self.model_name}_{self.task_name}_{timestamp}.json"
-
-        with open(filename, 'w') as f:
-            json.dump(self.metrics, f, indent=2)
-
-    def log_event(self, event_type, data=None):
-        event = {
-            'timestamp': time.time(),
-            'event': event_type,
-            'data': data or {}
-        }
-        self.metrics['session_log'].append(event)
-
+If using Continue VS Code extension, start benchmarks with:
+```bash
+python benchmark_task.py --start
 ```
 
-### 7. Task Runner Script
+## Benchmark Workflow
 
-Create `benchmark/task_runner.py`:
+1. **Start a task** - Run the task_runner with your chosen model and task
+2. **Solve with AI** - Use your AI tool to complete the task
+3. **Track metrics** - Note prompts sent and manual interventions
+4. **Complete benchmark** - Record success and metrics
+5. **Analyze results** - Compare performance across models and tasks
 
-```python
-#!/usr/bin/env python3
-import os
-import sys
-from metrics import BenchmarkMetrics
+## Metrics Tracked
 
-def run_benchmark_task(model_name, task_file):
-    """Simple POC task runner"""
-    print(f"Starting benchmark: {model_name} on {task_file}")
+- **Task completion rate** - Success/failure ratio
+- **Time to completion** - How long tasks take
+- **Prompts sent** - Number of AI interactions
+- **Human interventions** - Manual corrections needed
+- **Code changes** - Files modified, lines added/removed
+- **Model comparison** - Performance across different AI models
 
-    # Load task
-    with open(task_file, 'r') as f:
-        task_content = f.read()
+## Available Tasks
 
-    print(f"Task loaded:\n{task_content}")
+### Easy Tasks
+- `fix_typo.md` - Fix documentation typos
+- `add_gitignore_entry.md` - Update .gitignore file
 
-    # Initialize metrics
-    task_name = os.path.basename(task_file).replace('.md', '')
-    metrics = BenchmarkMetrics(model_name, task_name)
-    metrics.start_task()
+### Medium Tasks  
+- `add_validation.md` - Add input validation to functions
+- `add_export_feature.md` - Implement JSON export functionality
 
-    print(f"Metrics tracking started for {model_name}")
-    print("Now go use Continue to solve this task!")
-    print("Manual tracking points:")
-    print("- Count each prompt you send")
-    print("- Note when you manually edit code")
-    print("- Track when you change the AI's suggestion")
-
-    input("Press Enter when you complete the task...")
-
-    success = input("Was the task completed successfully? (y/n): ").lower() == 'y'
-
-    # Manual input for POC
-    metrics.metrics['prompts_sent'] = int(input("How many prompts did you send? "))
-    metrics.metrics['human_interventions'] = int(input("How many times did you manually intervene? "))
-    metrics.metrics['files_modified'] = int(input("How many files were modified? "))
-
-    metrics.complete_task(success)
-    print(f"Benchmark completed! Results saved to benchmark/results/")
-
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python task_runner.py <model_name> <task_file>")
-        sys.exit(1)
-
-    run_benchmark_task(sys.argv[1], sys.argv[2])
-
-```
-
-## Running Your POC
-
-### 8. Test Workflow
-
-1. **Pick a "good first issue"** from a real repo or create synthetic ones
-2. **Choose a model** in Continue
-3. **Run the benchmark**:
-    
-    ```bash
-    python benchmark/task_runner.py "Claude-4-Sonnet" "benchmark/tasks/easy/fix_typo.md"
-    
-    ```
-    
-4. **Use Continue** to solve the task, noting:
-    - How many prompts you send
-    - When you manually edit code
-    - When you reject AI suggestions
-    - Overall collaboration quality
-5. **Complete the task** and log results
-
-### 9. Simple Analysis
-
-Create `benchmark/analyze.py`:
-
-```python
-import json
-import glob
-import pandas as pd
-
-def analyze_results():
-    results = []
-
-    for result_file in glob.glob("benchmark/results/*.json"):
-        with open(result_file, 'r') as f:
-            data = json.load(f)
-            results.append(data)
-
-    df = pd.DataFrame(results)
-
-    # Basic analysis
-    print("=== Benchmark Results ===")
-    print(f"Total tasks: {len(df)}")
-    print(f"Completion rate: {df['task_completed'].mean():.2%}")
-    print("\nBy Model:")
-    print(df.groupby('model')['task_completed'].agg(['count', 'mean', 'std']))
-    print("\nAverage prompts by model:")
-    print(df.groupby('model')['prompts_sent'].mean())
-    print("\nAverage completion time by model:")
-    print(df.groupby('model')['completion_time'].mean())
-
-if __name__ == "__main__":
-    analyze_results()
-
-```
-
-## Good First Issues to Try
-
-### 10. Sample Tasks for Your POC
-
-Create these tasks based on real GitHub "good first issues":
-
-1. **Documentation fixes** (easy)
-2. **Add error handling** (medium)
-3. **Implement a small feature** (medium)
-4. **Refactor duplicate code** (hard)
-5. **Add comprehensive tests** (hard)
+### Hard Tasks
+- `refactor_metrics.md` - Refactor the metrics system
+- `implement_dashboard.md` - Build a web dashboard
 
 ## Next Steps
 
-Once your POC works:
+### For Users
 
-1. **Automate metrics collection** by hooking into Continue's API
-2. **Add more models** (Gemini, Claude variants, different local models)
-3. **Create standardized tasks** from real repositories
-4. **Build a simple dashboard** to visualize results
-5. **Scale to multiple participants** for statistical significance
+1. **Run benchmarks** on your preferred AI models
+2. **Create custom tasks** based on your real-world needs
+3. **Share results** to contribute to community knowledge
+4. **Compare models** to find the best fit for your workflow
 
-## Benefits of This Setup
+### For Contributors
 
-- **Minimal setup time**: 15 minutes to start
-- **Real models**: Mix of commercial and local
-- **Actual workflow**: Using Continue as you normally would
-- **Measurable**: Basic but meaningful metrics
-- **Extensible**: Easy to add more sophistication later
+1. **Add new tasks** - Create realistic coding challenges in `benchmark/tasks/`
+2. **Enhance metrics** - Add more sophisticated tracking (PR welcome!)
+3. **Improve analysis** - Add visualizations and statistical tests
+4. **Integration** - Add support for more AI tools and IDEs
 
-This POC gives you the core structure to validate your benchmark concept before investing in the full implementation!
+### Planned Features
+
+- [ ] Automatic prompt/response capture
+- [ ] Web dashboard for results visualization  
+- [ ] GitHub integration for real issue testing
+- [ ] Multi-model parallel testing
+- [ ] Difficulty auto-classification
+- [ ] Performance regression detection
+- [ ] Team leaderboards
+- [ ] Task recommendation engine
+
+## Creating Custom Tasks
+
+Create a new task file in `benchmark/tasks/{difficulty}/` with this format:
+
+```markdown
+# Task: [Task Name]
+
+**Difficulty**: [Easy/Medium/Hard]
+**Issue**: [Problem description]
+
+## Requirements
+- [Requirement 1]
+- [Requirement 2]
+
+## Expected Outcome
+- [Expected result]
+
+**Time Estimate**: [X-Y minutes]
+
+## Success Criteria
+- [ ] [Criterion 1]
+- [ ] [Criterion 2]
+```
+
+## Advanced Setup
+
+For full Continue integration and local model setup, see [setup.md](setup.md).
+
+## Data Privacy
+
+All benchmark results are stored locally in `benchmark/results/`. No data is sent to external services unless you explicitly share it.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+MIT
+
+## Acknowledgments
+
+Built to evaluate and improve human-AI collaboration in software development. Special thanks to the Continue and Ollama projects for enabling local AI development.
