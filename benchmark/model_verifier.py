@@ -7,20 +7,20 @@ shows model sizes and download status, and provides guidance for
 downloading missing models.
 """
 
+from dataclasses import dataclass
 import json
 import logging
-import os
+from pathlib import Path
 import platform
+import shlex
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Union
 
 try:
     from benchmark.ollama_check import OllamaChecker
-    from benchmark.validators import validate_model_name
+    from benchmark.validators import ValidationError, validate_model_name
 except ImportError:
     # Fallback if modules are not available
     class OllamaChecker:
@@ -33,6 +33,9 @@ except ImportError:
     
     def validate_model_name(name: str) -> str:
         return name.strip() if name else name
+    
+    class ValidationError(Exception):
+        pass
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -156,7 +159,7 @@ class ModelVerifier:
         self.installed_models: List[str] = []
         self.system_info = self._get_system_info()
         
-    def _get_system_info(self) -> Dict[str, any]:
+    def _get_system_info(self) -> Dict[str, Union[str, int, bool]]:
         """Get system information for resource checks."""
         info = {
             "platform": platform.system(),
@@ -216,22 +219,31 @@ class ModelVerifier:
                 kernel32.GlobalMemoryStatus(ctypes.byref(memory_status))
                 return memory_status.dwTotalPhys // (1024 ** 3)
         except Exception as e:
-            logger.warning(f"Could not determine RAM: {e}")
+            logger.warning("Could not determine RAM due to system error")
+            logger.debug(f"RAM detection error details: {e}")
         
         return 8  # Default assumption
     
     def _get_free_disk_space(self) -> int:
         """Get free disk space in GB."""
         try:
-            # Get Ollama models directory
+            # Get Ollama models directory with path validation
             models_dir = Path.home() / ".ollama" / "models"
+            models_dir = models_dir.resolve()
+            
+            # Validate path is within user home directory
+            if not str(models_dir).startswith(str(Path.home())):
+                logger.warning("Models directory path outside home directory")
+                models_dir = Path.home()
+            
             if not models_dir.exists():
                 models_dir = Path.home()
             
             stat = shutil.disk_usage(models_dir)
             return stat.free // (1024 ** 3)
         except Exception as e:
-            logger.warning(f"Could not determine disk space: {e}")
+            logger.warning("Could not determine disk space")
+            logger.debug(f"Disk space detection error details: {e}")
             return 50  # Default assumption
     
     def print_message(self, message: str, level: str = "info") -> None:
@@ -283,7 +295,7 @@ class ModelVerifier:
         
         return missing
     
-    def calculate_download_requirements(self, models: List[ModelInfo]) -> Dict[str, any]:
+    def calculate_download_requirements(self, models: List[ModelInfo]) -> Dict[str, Union[int, float, str, bool]]:
         """Calculate disk space and RAM requirements for models.
         
         Args:
@@ -324,10 +336,9 @@ class ModelVerifier:
         # Categorize based on RAM
         if ram_gb >= 64:
             # High-end system - can run everything
-            priorities = ["essential", "recommended", "optional"]
+            suggested = list(RECOMMENDED_MODELS.values())
         elif ram_gb >= 32:
             # Good system - skip the largest models
-            priorities = ["essential", "recommended"]
             suggested = [m for m in RECOMMENDED_MODELS.values() 
                         if m.ram_required <= 32]
         elif ram_gb >= 16:
@@ -359,7 +370,7 @@ class ModelVerifier:
         self.print_message("=" * 60, "info")
         
         # System info
-        self.print_message(f"\nSystem Information:", "info")
+        self.print_message("\nSystem Information:", "info")
         self.print_message(f"  Platform: {self.system_info['platform']} ({self.system_info['machine']})", "info")
         self.print_message(f"  RAM: {self.system_info['ram_gb']} GB", "ram")
         self.print_message(f"  Free Disk: {self.system_info['disk_free_gb']} GB", "disk")
@@ -414,7 +425,7 @@ class ModelVerifier:
         # Optional models
         missing_optional = self.get_missing_models("optional")
         if missing_optional and self.system_info["ram_gb"] >= 16:
-            self.print_message(f"\nℹ️  Optional Models (not installed):", "info")
+            self.print_message("\nℹ️  Optional Models (not installed):", "info")
             for model in missing_optional[:3]:  # Show max 3
                 self.print_message(
                     f"  • {model.name} ({model.size}) - {model.description}", 
@@ -444,7 +455,7 @@ class ModelVerifier:
         all_missing = missing_essential + missing_recommended
         requirements = self.calculate_download_requirements(all_missing)
         
-        self.print_message(f"\n💾 Disk Space Requirements:", "disk")
+        self.print_message("\n💾 Disk Space Requirements:", "disk")
         self.print_message(f"  Total download size: {requirements['total_size_human']}", "info")
         self.print_message(f"  Available disk space: {requirements['disk_available_gb']} GB", "info")
         
@@ -463,8 +474,18 @@ class ModelVerifier:
         # Batch download command
         if len(all_missing) > 1:
             self.print_message("\n📦 Download all at once:", "info")
-            model_names = " ".join(m.name for m in all_missing[:3])  # Max 3 at once
-            self.print_message(f"  for model in {model_names}; do ollama pull $model; done", "info")
+            # Validate and quote model names to prevent command injection
+            safe_models = []
+            for model in all_missing[:3]:  # Max 3 at once
+                try:
+                    validated_name = validate_model_name(model.name)
+                    safe_models.append(shlex.quote(validated_name))
+                except (ValidationError, Exception):
+                    logger.warning(f"Skipping invalid model name: {model.name}")
+            
+            if safe_models:
+                model_names = " ".join(safe_models)
+                self.print_message(f"  for model in {model_names}; do ollama pull $model; done", "info")
     
     def suggest_fallbacks(self) -> None:
         """Suggest fallback models for resource-constrained systems."""
@@ -491,7 +512,7 @@ class ModelVerifier:
             self.print_message("  • Upgrading RAM to at least 8GB", "info")
             self.print_message("  • Using quantized models (e.g., llama2:7b-q4_0)", "info")
     
-    def run_verification(self) -> Dict[str, any]:
+    def run_verification(self) -> Dict[str, Union[Dict, List, bool]]:
         """Run complete model verification.
         
         Returns:

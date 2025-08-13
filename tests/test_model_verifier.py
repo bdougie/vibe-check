@@ -4,8 +4,7 @@ Test suite for benchmark/model_verifier.py
 """
 
 import json
-import platform
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -225,10 +224,9 @@ class TestModelVerifier:
         
         suggested = self.verifier.suggest_models_for_system()
         
-        # Should include large models
-        model_names = [m.name for m in suggested]
         # High-end system can handle any model
         assert len(suggested) > 0
+        # Should include various models for high-end system
     
     def test_suggest_models_for_system_low_end(self):
         """Test model suggestions for low-end system."""
