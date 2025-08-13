@@ -3,17 +3,18 @@
 Test suite for benchmark/validators.py security module.
 """
 
-import pytest
+import os
 from pathlib import Path
 import tempfile
-import os
+
+import pytest
 
 from benchmark.validators import (
     ValidationError,
-    validate_model_name,
-    validate_task_file,
     get_safe_user_input,
     sanitize_error_message,
+    validate_model_name,
+    validate_task_file,
 )
 
 
