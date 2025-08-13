@@ -1,0 +1,140 @@
+# Models Configuration for Batch Benchmark Runner
+# 
+# This file defines available AI models for benchmarking.
+# Models can be local (Ollama) or commercial (OpenAI, Anthropic, etc.)
+#
+# Format:
+# - name: Model identifier used in commands
+# - provider: Model provider (ollama, openai, anthropic, etc.)
+# - display_name: Human-friendly name shown in reports
+# - enabled: Whether to include in "all" model runs
+# - api_key: API key for commercial models (can use env vars)
+# - settings: Model-specific settings
+
+models:
+  # Ollama Models (automatically detected if available)
+  # These are examples - actual Ollama models are auto-detected
+  
+  # Commercial Models
+  # Uncomment and configure with your API keys
+  
+  # OpenAI Models
+  - name: "gpt-4"
+    provider: "openai"
+    display_name: "GPT-4"
+    enabled: false  # Set to true when API key is configured
+    api_key: "${OPENAI_API_KEY}"  # Use environment variable
+    settings:
+      temperature: 0.7
+      max_tokens: 2048
+      
+  - name: "gpt-4-turbo"
+    provider: "openai"
+    display_name: "GPT-4 Turbo"
+    enabled: false
+    api_key: "${OPENAI_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 4096
+      
+  - name: "gpt-3.5-turbo"
+    provider: "openai"
+    display_name: "GPT-3.5 Turbo"
+    enabled: false
+    api_key: "${OPENAI_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 2048
+  
+  # Anthropic Models
+  - name: "claude-3-opus"
+    provider: "anthropic"
+    display_name: "Claude 3 Opus"
+    enabled: false
+    api_key: "${ANTHROPIC_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 4096
+      
+  - name: "claude-3-sonnet"
+    provider: "anthropic"
+    display_name: "Claude 3 Sonnet"
+    enabled: false
+    api_key: "${ANTHROPIC_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 4096
+      
+  - name: "claude-3-haiku"
+    provider: "anthropic"
+    display_name: "Claude 3 Haiku"
+    enabled: false
+    api_key: "${ANTHROPIC_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 2048
+  
+  # Google Models
+  - name: "gemini-pro"
+    provider: "google"
+    display_name: "Gemini Pro"
+    enabled: false
+    api_key: "${GOOGLE_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 2048
+  
+  # Cohere Models
+  - name: "command"
+    provider: "cohere"
+    display_name: "Cohere Command"
+    enabled: false
+    api_key: "${COHERE_API_KEY}"
+    settings:
+      temperature: 0.7
+      max_tokens: 2048
+
+# Batch runner settings
+batch_settings:
+  # Default timeout per model (seconds)
+  default_timeout: 1800  # 30 minutes
+  
+  # Whether to save intermediate results
+  save_intermediate: true
+  
+  # Maximum parallel models (if parallel mode enabled)
+  max_parallel: 3
+  
+  # Retry failed models
+  retry_on_failure: false
+  max_retries: 2
+  
+  # Progress display
+  show_progress: true
+  verbose: false
+
+# Model categories for organized testing
+categories:
+  fast:
+    - "gpt-3.5-turbo"
+    - "claude-3-haiku"
+    - "ollama/llama2"
+    - "ollama/mistral"
+    
+  balanced:
+    - "gpt-4"
+    - "claude-3-sonnet"
+    - "gemini-pro"
+    - "ollama/codellama"
+    
+  powerful:
+    - "gpt-4-turbo"
+    - "claude-3-opus"
+    - "ollama/mixtral"
+    - "ollama/llama2:70b"
+  
+  coding_specialized:
+    - "ollama/codellama"
+    - "ollama/deepseek-coder"
+    - "ollama/qwen2.5-coder"
+    - "ollama/codestral"
