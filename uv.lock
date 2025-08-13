@@ -886,6 +886,7 @@ dependencies = [
     { name = "pre-commit" },
     { name = "pytest" },
     { name = "pytest-cov" },
+    { name = "pyyaml" },
     { name = "ruff" },
 ]
 
@@ -915,6 +916,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'test'", specifier = ">=7.4.0" },
     { name = "pytest-cov", specifier = ">=4.1.0" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.1.0" },
+    { name = "pyyaml", specifier = ">=6.0.0" },
     { name = "ruff", specifier = ">=0.1.8" },
 ]
 provides-extras = ["test", "dev"]

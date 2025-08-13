@@ -6,13 +6,14 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 
 ### Getting Started
 - [**Setup Guide**](setup.md) - Initial setup and configuration instructions
-- [**Quick Start Guide**](guide.md) - Step-by-step guide to run your first benchmark
+- [**Quick Start Guide**](manual-guide.md) - Step-by-step guide to run your first benchmark
 
 ### Core Features
 - [**Automatic Git Tracking**](git-tracking.md) - How automatic code change tracking works
 - [**Storage System**](storage.md) - Understanding the JSON storage format and structure
 
 ### Configuration
+- [**Continue Config Generator**](continue-config.md) - Automatically generate Continue VS Code extension config
 - [**Models Configuration**](models.md) - Supported AI models and setup instructions
 - [**Ollama Setup**](ollama.md) - Local model setup with Ollama
 - [**Pre-commit Hooks**](pre-commit-setup.md) - Code quality automation setup
@@ -22,8 +23,9 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 ### For New Users
 
 1. Start with the [Setup Guide](setup.md) to configure your environment
-2. Follow the [Quick Start Guide](guide.md) to run your first benchmark
-3. Review [Models Configuration](models.md) to set up your preferred AI models
+2. Follow the [Quick Start Guide](manual-guide.md) to run your first benchmark
+3. Use the [Continue Config Generator](continue-config.md) to set up VS Code integration
+4. Review [Models Configuration](models.md) to set up your preferred AI models
 
 ### For Developers
 
@@ -64,9 +66,10 @@ See [models.md](models.md) for configuration.
 docs/
 ├── README.md           # This file - Table of contents
 ├── setup.md           # Environment setup guide
-├── guide.md           # Quick start guide
+├── manual-guide.md    # Quick start guide
 ├── git-tracking.md    # Automatic git tracking documentation
 ├── storage.md         # Storage system documentation
+├── continue-config.md # Continue VS Code extension configuration
 ├── models.md          # AI models configuration
 ├── ollama.md          # Ollama local models setup
 └── pre-commit-setup.md # Pre-commit hooks configuration
