@@ -5,8 +5,6 @@ This demonstrates the new automatic git diff tracking feature.
 """
 
 from benchmark.metrics import BenchmarkMetrics
-import tempfile
-from pathlib import Path
 
 
 def demo_git_tracking():
