@@ -10,6 +10,7 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 - [**Manual Guide**](manual-guide.md) - In-depth guide to run benchmarks
 
 ### Core Features
+- [**Continue Session Tracking**](continue-session-tracking.md) - Automatic metrics extraction from Continue IDE ✨
 - [**Automatic Git Tracking**](git-tracking.md) - How automatic code change tracking works
 - [**Storage System**](storage.md) - Understanding the JSON storage format and structure
 
@@ -36,6 +37,15 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 3. Set up [Pre-commit Hooks](pre-commit-setup.md) for code quality
 
 ### Key Features
+
+#### 🤖 Continue Session Tracking
+Automatically extracts from Continue IDE:
+- Prompts and responses
+- Token usage metrics
+- Tool calls and arguments
+- Human interventions
+
+See [continue-session-tracking.md](continue-session-tracking.md) for details.
 
 #### 🔄 Automatic Git Tracking
 The framework automatically captures:
@@ -66,17 +76,18 @@ See [models.md](models.md) for configuration.
 
 ```
 .
-├── QUICKSTART.md       # 15-minute interactive setup checklist ✅
+├── QUICKSTART.md                  # 15-minute interactive setup checklist ✅
 └── docs/
-    ├── README.md           # This file - Table of contents
-    ├── setup.md           # Environment setup guide
-    ├── manual-guide.md    # In-depth benchmark guide
-    ├── git-tracking.md    # Automatic git tracking documentation
-    ├── storage.md         # Storage system documentation
-    ├── continue-config.md # Continue VS Code extension configuration
-    ├── models.md          # AI models configuration
-    ├── ollama.md          # Ollama local models setup
-    └── pre-commit-setup.md # Pre-commit hooks configuration
+    ├── README.md                   # This file - Table of contents
+    ├── setup.md                   # Environment setup guide
+    ├── manual-guide.md            # In-depth benchmark guide
+    ├── continue-session-tracking.md # Automatic Continue metrics extraction
+    ├── git-tracking.md            # Automatic git tracking documentation
+    ├── storage.md                 # Storage system documentation
+    ├── continue-config.md         # Continue VS Code extension configuration
+    ├── models.md                  # AI models configuration
+    ├── ollama.md                  # Ollama local models setup
+    └── pre-commit-setup.md        # Pre-commit hooks configuration
 ```
 
 ## 🔍 Quick Reference

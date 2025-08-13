@@ -195,14 +195,32 @@ def run_benchmark_task(
         print("\n❌ Invalid input provided multiple times. Marking as failed.")
         success = False
 
+    # Try to import metrics from Continue first
+    print("\n🔍 Checking for Continue session data...")
+    try:
+        from benchmark.continue_session_tracker import find_active_continue_session
+
+        session_id = find_active_continue_session()
+        if session_id:
+            print(f"✅ Found Continue session: {session_id[:8]}...")
+            print("📊 Metrics will be extracted automatically from Continue")
+            # Metrics will be imported automatically in complete_task()
+        else:
+            print("ℹ️  No Continue session found, falling back to manual input")
+    except ImportError:
+        print("ℹ️  Continue session tracker not available")
+        session_id = None
+
+    # Only ask for manual input if no Continue session or in smoke test mode
     if smoke_test:
         # Simplified metrics for smoke test
         print("\n🔥 Smoke test - using simplified metrics")
         metrics.metrics["prompts_sent"] = 1  # Assume minimal prompts for smoke test
         metrics.metrics["human_interventions"] = 0  # Should require no intervention
         metrics.metrics["smoke_test"] = True
-    else:
-        # Manual input for POC
+    elif not session_id:
+        # Manual input only if no Continue session found
+        print("\n📝 Manual metric collection (Continue not detected)")
         prompts = input("How many prompts did you send? [default: 0]: ").strip()
         metrics.metrics["prompts_sent"] = int(prompts) if prompts else 0
 
@@ -213,17 +231,23 @@ def run_benchmark_task(
             int(interventions) if interventions else 0
         )
 
-    # Git stats are now automatically captured by metrics.complete_task()
-    print("\n📊 Automatically capturing git changes...")
+    # Git stats and Continue metrics are now automatically captured by metrics.complete_task()
+    print("\n📊 Automatically capturing metrics...")
 
     # Complete and save (this will automatically capture git stats)
     result_file = metrics.complete_task(success)
 
     # Show what was captured
+    if metrics.metrics.get("continue_session_id"):
+        print("\n✅ Continue session metrics captured:")
+        print(f"   💬 {metrics.metrics.get('prompts_sent', 0)} prompts sent")
+        print(f"   🤖 {metrics.metrics.get('tokens_generated', 0)} tokens generated")
+        print(f"   🔧 {metrics.metrics.get('tool_calls', 0)} tool calls")
+        print(f"   ✋ {metrics.metrics.get('human_interventions', 0)} interventions")
+
     if metrics.metrics.get("files_modified", 0) > 0:
-        print(
-            f"📝 Captured changes: {metrics.metrics['files_modified']} files modified"
-        )
+        print("\n📝 Git changes captured:")
+        print(f"   📁 {metrics.metrics['files_modified']} files modified")
         print(f"   ➕ {metrics.metrics['lines_added']} lines added")
         print(f"   ➖ {metrics.metrics['lines_removed']} lines removed")
 
