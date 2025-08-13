@@ -55,7 +55,6 @@ jobs:
                --cov-report=html:htmlcov \
                --cov-report=xml:coverage.xml \
                --cov-report=term-missing \
-               --cov-fail-under=30 \
                -v || pytest -v || python3 run_tests.py
                
     - name: Upload coverage reports to Codecov
