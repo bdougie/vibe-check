@@ -35,6 +35,24 @@ uv pip install -r requirements.txt
 
 ## Usage
 
+### 🔥 Quick Smoke Test (30 seconds)
+
+Before running full benchmarks, verify your setup with a quick smoke test:
+
+```bash
+# Run the automated smoke test
+python run_smoke_test.py
+
+# Or run manually with any model
+python benchmark/task_runner.py "test_model" "benchmark/tasks/smoke/add_comment.md" --smoke-test --skip-ollama-check
+```
+
+The smoke test:
+- Takes less than 30 seconds
+- Verifies all components work together
+- Uses a simple "add a comment" task
+- Requires no model setup
+
 ### 1. Run a Benchmark Task
 
 ```bash

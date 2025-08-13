@@ -142,7 +142,10 @@ def check_ollama_setup(model_name: Optional[str] = None) -> bool:
 
 
 def run_benchmark_task(
-    model_name: str, task_file: str, skip_ollama_check: bool = False
+    model_name: str,
+    task_file: str,
+    skip_ollama_check: bool = False,
+    smoke_test: bool = False,
 ) -> None:
     """Simple POC task runner
 
@@ -150,8 +153,11 @@ def run_benchmark_task(
         model_name: Name of the model to benchmark
         task_file: Path to the task file
         skip_ollama_check: Whether to skip Ollama setup verification
+        smoke_test: Whether this is a smoke test (simplified flow)
     """
     print(f"\n{'=' * 60}")
+    if smoke_test:
+        print("🔥 SMOKE TEST MODE")
     print(f"Starting benchmark: {model_name}")
     print(f"Task file: {task_file}")
     print(f"{'=' * 60}\n")
@@ -195,12 +201,17 @@ def run_benchmark_task(
     metrics.start_task()
 
     print(f"\nMetrics tracking started for {model_name}")
-    print("\n📊 Now use Continue to solve this task!")
-    print("\nManual tracking points to remember:")
-    print("  • Count each prompt you send to the AI")
-    print("  • Note when you manually edit code")
-    print("  • Track when you change the AI's suggestion")
-    print("  • Record any issues or errors encountered")
+    if smoke_test:
+        print("\n🔥 SMOKE TEST: This is a quick validation test")
+        print("The task should take less than 30 seconds to complete.")
+        print("\n📊 Now use Continue to solve this task!")
+    else:
+        print("\n📊 Now use Continue to solve this task!")
+        print("\nManual tracking points to remember:")
+        print("  • Count each prompt you send to the AI")
+        print("  • Note when you manually edit code")
+        print("  • Track when you change the AI's suggestion")
+        print("  • Record any issues or errors encountered")
 
     print("\n" + "=" * 60)
     input("Press Enter when you complete the task...")
@@ -219,14 +230,23 @@ def run_benchmark_task(
         print("\n❌ Invalid input provided multiple times. Marking as failed.")
         success = False
 
-    # Manual input for POC
-    prompts = input("How many prompts did you send? [default: 0]: ").strip()
-    metrics.metrics["prompts_sent"] = int(prompts) if prompts else 0
+    if smoke_test:
+        # Simplified metrics for smoke test
+        print("\n🔥 Smoke test - using simplified metrics")
+        metrics.metrics["prompts_sent"] = 1  # Assume minimal prompts for smoke test
+        metrics.metrics["human_interventions"] = 0  # Should require no intervention
+        metrics.metrics["smoke_test"] = True
+    else:
+        # Manual input for POC
+        prompts = input("How many prompts did you send? [default: 0]: ").strip()
+        metrics.metrics["prompts_sent"] = int(prompts) if prompts else 0
 
-    interventions = input(
-        "How many times did you manually intervene? [default: 0]: "
-    ).strip()
-    metrics.metrics["human_interventions"] = int(interventions) if interventions else 0
+        interventions = input(
+            "How many times did you manually intervene? [default: 0]: "
+        ).strip()
+        metrics.metrics["human_interventions"] = (
+            int(interventions) if interventions else 0
+        )
 
     # Try to get git stats automatically
     files_mod, lines_add, lines_rem = get_git_diff_stats()
@@ -310,4 +330,10 @@ if __name__ == "__main__":
     if skip_ollama:
         sys.argv.remove("--skip-ollama-check")
 
-    run_benchmark_task(sys.argv[1], sys.argv[2], skip_ollama_check=skip_ollama)
+    smoke_test = "--smoke-test" in sys.argv
+    if smoke_test:
+        sys.argv.remove("--smoke-test")
+
+    run_benchmark_task(
+        sys.argv[1], sys.argv[2], skip_ollama_check=skip_ollama, smoke_test=smoke_test
+    )
