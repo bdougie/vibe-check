@@ -1,0 +1,211 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.13"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Create benchmark results directory
+      run: |
+        mkdir -p benchmark/results
+        
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=benchmark --cov=. \
+               --cov-report=html:htmlcov \
+               --cov-report=xml:coverage.xml \
+               --cov-report=term-missing \
+               --cov-fail-under=80 \
+               -v
+               
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: Upload coverage to artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: coverage-report-${{ matrix.python-version }}
+        path: |
+          htmlcov/
+          coverage.xml
+          
+    - name: Check test coverage threshold
+      run: |
+        coverage report --fail-under=80
+        
+    - name: Run basic smoke tests
+      run: |
+        # Test that core modules can be imported
+        python -c "import benchmark.metrics; print('✅ metrics.py imports successfully')"
+        python -c "import benchmark_task; print('✅ benchmark_task.py imports successfully')"
+        python -c "import benchmark.task_runner; print('✅ task_runner.py imports successfully')"
+        
+        # Test that task files exist
+        python -c "
+        from pathlib import Path
+        tasks_dir = Path('benchmark/tasks')
+        assert tasks_dir.exists(), 'Tasks directory missing'
+        easy_tasks = list((tasks_dir / 'easy').glob('*.md'))
+        medium_tasks = list((tasks_dir / 'medium').glob('*.md'))
+        hard_tasks = list((tasks_dir / 'hard').glob('*.md'))
+        total_tasks = len(easy_tasks) + len(medium_tasks) + len(hard_tasks)
+        print(f'✅ Found {total_tasks} benchmark tasks')
+        assert total_tasks >= 6, 'Expected at least 6 benchmark tasks'
+        "
+        
+        # Test basic functionality
+        python -c "
+        from benchmark.metrics import BenchmarkMetrics
+        metrics = BenchmarkMetrics('ci_test_model', 'ci_test_task')
+        metrics.start_task()
+        metrics.log_prompt('test prompt', 'test response')
+        metrics.log_human_intervention('test_intervention')
+        print('✅ BenchmarkMetrics basic functionality works')
+        "
+
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.13"
+        
+    - name: Install linting dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black flake8 mypy
+        pip install -r requirements.txt
+        
+    - name: Run Black code formatter check
+      run: |
+        black --check --diff .
+        
+    - name: Run Flake8 linting
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+        
+    - name: Run MyPy type checking
+      run: |
+        # Install types for pandas if available
+        pip install types-requests types-setuptools || true
+        # Run mypy on core modules (may have some issues to fix)
+        mypy benchmark/ --ignore-missing-imports || true
+        mypy benchmark_task.py --ignore-missing-imports || true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.13"
+        
+    - name: Install security scanning tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+        
+    - name: Run Bandit security linting
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . || true
+        
+    - name: Run Safety dependency security check
+      run: |
+        safety check || true
+        
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+
+  build-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Validate README and documentation
+      run: |
+        # Check that README.md exists and has content
+        test -f README.md
+        test -s README.md
+        
+        # Check that setup.md exists
+        test -f setup.md
+        test -s setup.md
+        
+        # Validate that all task files are properly formatted
+        python -c "
+        from pathlib import Path
+        import re
+        
+        tasks_dir = Path('benchmark/tasks')
+        for task_file in tasks_dir.rglob('*.md'):
+            content = task_file.read_text()
+            
+            # Check for required sections
+            assert '# Task:' in content, f'Missing task header in {task_file}'
+            assert '**Difficulty**:' in content, f'Missing difficulty in {task_file}'
+            assert '## Requirements' in content, f'Missing requirements in {task_file}'
+            assert '## Expected Outcome' in content, f'Missing expected outcome in {task_file}'
+            assert '**Time Estimate**:' in content, f'Missing time estimate in {task_file}'
+            assert '## Success Criteria' in content, f'Missing success criteria in {task_file}'
+            
+            print(f'✅ {task_file} is properly formatted')
+        
+        print('✅ All task files are properly formatted')
+        "
+        
+        echo "✅ Documentation validation completed"
