@@ -21,11 +21,19 @@ quick-test:  ## Run quick smoke tests
 	@python3 -c "from benchmark.metrics import BenchmarkMetrics; m = BenchmarkMetrics('test', 'test'); m.start_task(); print('✅ Basic functionality works')"
 	@echo "✅ Quick tests passed!"
 
-lint:  ## Run linting (requires flake8)
-	python3 -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics || echo "Install flake8 to run linting"
-	python3 -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics || echo "Install flake8 to run linting"
+lint:  ## Run linting with ruff (fast!)
+	python3 -m ruff check . || echo "Install ruff to run linting"
 
-format:  ## Format code (requires black)
+lint-fix:  ## Run linting with ruff and auto-fix issues
+	python3 -m ruff check . --fix || echo "Install ruff to run linting"
+
+format:  ## Format code with ruff (fast!)
+	python3 -m ruff format . || echo "Install ruff to format code"
+
+format-check:  ## Check code formatting with ruff
+	python3 -m ruff format . --check --diff || echo "Install ruff to check formatting"
+
+black-format:  ## Format code with black (backup)
 	python3 -m black . || echo "Install black to format code"
 
 type-check:  ## Run type checking (requires mypy)
@@ -35,10 +43,19 @@ type-check:  ## Run type checking (requires mypy)
 security:  ## Run security checks (requires bandit)
 	python3 -m bandit -r . || echo "Install bandit to run security checks"
 
+pre-commit-install:  ## Install pre-commit hooks
+	python3 -m pre_commit install || echo "Install pre-commit to set up hooks"
+
+pre-commit-run:  ## Run pre-commit hooks on all files
+	python3 -m pre_commit run --all-files || echo "Install pre-commit to run hooks"
+
+pre-commit-update:  ## Update pre-commit hooks
+	python3 -m pre_commit autoupdate || echo "Install pre-commit to update hooks"
+
 clean:  ## Clean up generated files
 	rm -rf __pycache__ benchmark/__pycache__ tests/__pycache__
 	rm -rf .pytest_cache .coverage htmlcov coverage.xml
-	rm -rf .mypy_cache
+	rm -rf .mypy_cache .ruff_cache
 	rm -f .benchmark_session_*.json
 	rm -f bandit-report.json
 	find . -name "*.pyc" -delete
@@ -56,15 +73,17 @@ benchmark-hard:  ## Run a hard benchmark task
 analyze:  ## Analyze benchmark results
 	python3 benchmark/analyze.py || echo "No results to analyze yet"
 
-all: clean quick-test lint format type-check security  ## Run all checks
+all: clean quick-test lint format-check type-check security pre-commit-run  ## Run all checks
 
 dev-setup:  ## Set up development environment
 	@echo "🔧 Setting up development environment..."
 	@echo "1. Installing dependencies..."
 	make install || echo "Warning: Could not install all dependencies"
-	@echo "2. Running initial tests..."
+	@echo "2. Installing pre-commit hooks..."
+	make pre-commit-install || echo "Warning: Could not install pre-commit hooks"
+	@echo "3. Running initial tests..."
 	make quick-test
-	@echo "3. Creating benchmark results directory..."
+	@echo "4. Creating benchmark results directory..."
 	mkdir -p benchmark/results
 	@echo "✅ Development setup complete!"
 	@echo ""
