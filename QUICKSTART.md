@@ -1,0 +1,316 @@
+# 🚀 Vibe Check Quick Start Guide
+
+Welcome! This step-by-step checklist will get you from zero to running your first local model benchmark in about 15 minutes.
+
+## Prerequisites Checklist
+
+### 📦 System Requirements
+
+- [ ] **Operating System**: macOS, Linux, or Windows with WSL2
+- [ ] **Memory**: At least 8GB RAM (16GB recommended for larger models)
+- [ ] **Storage**: 10GB free disk space for models
+
+## Step 1: Python Setup
+
+### Install Python (3.9 or higher)
+
+- [ ] Check if Python is installed:
+  ```bash
+  python3 --version
+  ```
+  You should see `Python 3.9.x` or higher
+
+- [ ] If not installed, get Python:
+  - **macOS**: `brew install python@3.11`
+  - **Ubuntu/Debian**: `sudo apt install python3.11 python3-pip`
+  - **Windows**: Download from [python.org](https://www.python.org/downloads/)
+
+- [ ] Verify pip is installed:
+  ```bash
+  python3 -m pip --version
+  ```
+
+## Step 2: Project Setup
+
+### Clone and Install
+
+- [ ] Clone the repository:
+  ```bash
+  git clone https://github.com/bdougie/vibe-check.git
+  cd vibe-check
+  ```
+
+- [ ] Install uv (recommended) or use pip:
+  ```bash
+  # Option A: Using uv (faster, recommended)
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  uv venv
+  source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+  uv pip install -r requirements.txt
+  
+  # Option B: Using pip
+  python3 -m venv venv
+  source venv/bin/activate  # On Windows: venv\Scripts\activate
+  pip install -r requirements.txt
+  ```
+
+- [ ] Verify installation:
+  ```bash
+  python3 -c "import pandas, yaml, pytest; print('✅ Dependencies installed')"
+  ```
+
+## Step 3: Ollama Setup
+
+### Install and Configure Ollama
+
+- [ ] Install Ollama:
+  - **macOS**: 
+    ```bash
+    brew install ollama
+    ```
+  - **Linux**: 
+    ```bash
+    curl -fsSL https://ollama.com/install.sh | sh
+    ```
+  - **Windows**: Download from [ollama.com](https://ollama.com/download)
+
+- [ ] Start Ollama service:
+  ```bash
+  ollama serve
+  ```
+  Keep this terminal window open!
+
+- [ ] Verify Ollama is running (in a new terminal):
+  ```bash
+  ollama list
+  ```
+
+## Step 4: Download a Model
+
+### Get Your First Model
+
+- [ ] Download recommended model (qwen2.5-coder:7b - good balance of speed and quality):
+  ```bash
+  ollama pull qwen2.5-coder:7b
+  ```
+  This will take 5-10 minutes depending on your internet speed.
+
+- [ ] Alternative smaller models (if limited on resources):
+  ```bash
+  # Smaller, faster option (3.8GB)
+  ollama pull deepseek-coder:1.3b
+  
+  # Or for general purpose
+  ollama pull llama3.2:3b
+  ```
+
+- [ ] Verify model is downloaded:
+  ```bash
+  ollama list
+  ```
+  You should see your model listed!
+
+## Step 5: VS Code and Continue Setup
+
+### Install Continue Extension
+
+- [ ] Open VS Code
+
+- [ ] Install Continue extension:
+  - Press `Cmd+Shift+X` (Mac) or `Ctrl+Shift+X` (Windows/Linux)
+  - Search for "Continue"
+  - Install the extension by Continue.dev
+
+- [ ] Generate Continue configuration:
+  ```bash
+  python benchmark/continue_config_generator.py
+  ```
+  - Answer `n` for OpenAI and Anthropic keys (unless you have them)
+  - The script will auto-detect your Ollama models
+
+- [ ] Restart VS Code to load the configuration
+
+- [ ] Test Continue:
+  - Open any code file
+  - Press `Cmd+L` (Mac) or `Ctrl+L` (Windows/Linux)
+  - Type "Hello" and see if the model responds
+
+## Step 6: Run Your First Benchmark
+
+### Smoke Test (30-second validation)
+
+- [ ] Run the smoke test:
+  ```bash
+  python run_smoke_test.py
+  ```
+  
+  This will:
+  - Create a sample project
+  - Run a simple task (fix a typo)
+  - Complete in about 30 seconds
+  - Save results automatically
+
+- [ ] Alternative: Run a specific benchmark:
+  ```bash
+  python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/fix_typo.md"
+  ```
+
+## Step 7: View Your Results
+
+### Analyze Benchmark Results
+
+- [ ] View results summary:
+  ```bash
+  python benchmark/analyze.py
+  ```
+
+- [ ] Check the results file:
+  ```bash
+  ls -la benchmark/results/
+  ```
+  Your results are saved as JSON files with timestamps
+
+- [ ] Review metrics:
+  - Task completion status
+  - Time taken
+  - Number of prompts
+  - Files modified (automatically tracked)
+  - Lines added/removed
+
+## 🎉 Success Checklist
+
+You've successfully completed your first benchmark when:
+
+- [ ] Ollama is running with at least one model
+- [ ] Continue extension is working in VS Code
+- [ ] Smoke test completed successfully
+- [ ] Results file was generated in `benchmark/results/`
+- [ ] You can see metrics with `python benchmark/analyze.py`
+
+## 📊 Next Steps
+
+### Run More Benchmarks
+
+1. **Try different difficulty levels:**
+   ```bash
+   # Easy task
+   python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/add_gitignore_entry.md"
+   
+   # Medium task
+   python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/medium/add_validation.md"
+   ```
+
+2. **Compare different models:**
+   ```bash
+   # Download another model
+   ollama pull codestral:latest
+   
+   # Run same task with different model
+   python benchmark/task_runner.py "ollama/codestral" "benchmark/tasks/easy/fix_typo.md"
+   ```
+
+3. **Analyze and compare results:**
+   ```bash
+   # View all results
+   python benchmark/analyze.py
+   
+   # Export to CSV for analysis
+   python benchmark/analyze.py --export
+   ```
+
+## 🐛 Troubleshooting
+
+### Common Issues and Solutions
+
+<details>
+<summary>❌ Ollama: "command not found"</summary>
+
+Make sure Ollama is in your PATH:
+```bash
+which ollama
+```
+If not found, add to your shell config:
+```bash
+echo 'export PATH=$PATH:/usr/local/bin' >> ~/.zshrc
+source ~/.zshrc
+```
+</details>
+
+<details>
+<summary>❌ "Connection refused" when running benchmark</summary>
+
+Ollama service isn't running. Start it:
+```bash
+ollama serve
+```
+Keep this running in a separate terminal!
+</details>
+
+<details>
+<summary>❌ "Model not found" error</summary>
+
+The model isn't downloaded. Pull it first:
+```bash
+ollama pull qwen2.5-coder:7b
+```
+</details>
+
+<details>
+<summary>❌ Continue extension not working</summary>
+
+1. Check configuration exists:
+   ```bash
+   ls ~/.continue/config.yaml
+   ```
+
+2. Regenerate if needed:
+   ```bash
+   python benchmark/continue_config_generator.py
+   ```
+
+3. Restart VS Code completely
+</details>
+
+<details>
+<summary>❌ Import errors when running scripts</summary>
+
+Make sure you're in the virtual environment:
+```bash
+# Activate virtual environment
+source .venv/bin/activate  # or venv/bin/activate
+
+# Reinstall dependencies
+uv pip install -r requirements.txt
+```
+</details>
+
+## 📚 Additional Resources
+
+- **[Full Documentation](docs/README.md)** - Comprehensive guides
+- **[Model Setup Guide](docs/models.md)** - Configure different AI models  
+- **[Task Creation](docs/manual-guide.md)** - Create custom benchmark tasks
+- **[Troubleshooting Guide](docs/ollama.md)** - Detailed Ollama troubleshooting
+- **[Continue Docs](https://docs.continue.dev)** - Continue extension documentation
+
+## 💡 Pro Tips
+
+1. **Start with easy tasks** - Build confidence before tackling harder benchmarks
+2. **Use smoke tests** - Quick 30-second tests to validate setup
+3. **Monitor resource usage** - Check RAM with `ollama ps` while models run
+4. **Save your results** - Results are timestamped and never overwritten
+5. **Try multiple models** - Different models excel at different tasks
+
+## 🤝 Getting Help
+
+- **GitHub Issues**: [Report problems](https://github.com/bdougie/vibe-check/issues)
+- **Documentation**: Check [docs/](docs/) folder for detailed guides
+- **Quick Check**: Run `python benchmark/ollama_check.py` to diagnose Ollama issues
+
+---
+
+**Ready to benchmark more models?** Check out the [full task list](benchmark/tasks/) and [model recommendations](docs/models.md)!
+
+**Having issues?** Most problems are covered in the troubleshooting section above or in the [detailed Ollama guide](docs/ollama.md).
+
+---
+*Estimated time to complete all steps: 15-20 minutes (depending on download speeds)*

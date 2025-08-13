@@ -2,11 +2,16 @@
 
 A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test and compare how different AI models perform on real coding tasks with human collaboration.
 
+## 🚀 New to Vibe Check?
+
+**Start here → [QUICKSTART.md](QUICKSTART.md)** - Get from zero to running your first benchmark in 15 minutes!
+
 ## 📚 Documentation
 
 For comprehensive documentation, see the [docs/](docs/) directory:
+- [**Quick Start Checklist**](QUICKSTART.md) - Step-by-step setup with checkboxes ✅
 - [**Setup Guide**](docs/setup.md) - Detailed setup instructions
-- [**Quick Start Guide**](docs/guide.md) - Step-by-step tutorial
+- [**Manual Guide**](docs/manual-guide.md) - In-depth tutorial
 - [**Git Tracking**](docs/git-tracking.md) - Automatic code change tracking
 - [**Storage System**](docs/storage.md) - Data persistence and format
 - [**All Documentation**](docs/README.md) - Complete documentation index

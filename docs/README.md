@@ -5,8 +5,9 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 ## 📚 Table of Contents
 
 ### Getting Started
+- [**Quick Start Checklist**](../QUICKSTART.md) - 15-minute setup with checkboxes ✅ **(Start Here!)**
 - [**Setup Guide**](setup.md) - Initial setup and configuration instructions
-- [**Quick Start Guide**](manual-guide.md) - Step-by-step guide to run your first benchmark
+- [**Manual Guide**](manual-guide.md) - In-depth guide to run benchmarks
 
 ### Core Features
 - [**Automatic Git Tracking**](git-tracking.md) - How automatic code change tracking works
@@ -22,10 +23,11 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 
 ### For New Users
 
-1. Start with the [Setup Guide](setup.md) to configure your environment
-2. Follow the [Quick Start Guide](manual-guide.md) to run your first benchmark
-3. Use the [Continue Config Generator](continue-config.md) to set up VS Code integration
-4. Review [Models Configuration](models.md) to set up your preferred AI models
+1. **Begin with the [Quick Start Checklist](../QUICKSTART.md)** - Interactive setup guide
+2. Review the [Setup Guide](setup.md) for detailed configuration options
+3. Follow the [Manual Guide](manual-guide.md) for in-depth benchmarking
+4. Use the [Continue Config Generator](continue-config.md) to set up VS Code integration
+5. Review [Models Configuration](models.md) to set up your preferred AI models
 
 ### For Developers
 
@@ -63,16 +65,18 @@ See [models.md](models.md) for configuration.
 ## 🗂️ Documentation Structure
 
 ```
-docs/
-├── README.md           # This file - Table of contents
-├── setup.md           # Environment setup guide
-├── manual-guide.md    # Quick start guide
-├── git-tracking.md    # Automatic git tracking documentation
-├── storage.md         # Storage system documentation
-├── continue-config.md # Continue VS Code extension configuration
-├── models.md          # AI models configuration
-├── ollama.md          # Ollama local models setup
-└── pre-commit-setup.md # Pre-commit hooks configuration
+.
+├── QUICKSTART.md       # 15-minute interactive setup checklist ✅
+└── docs/
+    ├── README.md           # This file - Table of contents
+    ├── setup.md           # Environment setup guide
+    ├── manual-guide.md    # In-depth benchmark guide
+    ├── git-tracking.md    # Automatic git tracking documentation
+    ├── storage.md         # Storage system documentation
+    ├── continue-config.md # Continue VS Code extension configuration
+    ├── models.md          # AI models configuration
+    ├── ollama.md          # Ollama local models setup
+    └── pre-commit-setup.md # Pre-commit hooks configuration
 ```
 
 ## 🔍 Quick Reference
