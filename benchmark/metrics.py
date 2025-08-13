@@ -239,9 +239,52 @@ class BenchmarkMetrics:
 
         return files_modified, lines_added, lines_removed
 
-    def complete_task(self, success=True):
+    def import_continue_session_metrics(self, session_id=None):
+        """Import metrics from Continue session data if available."""
+        try:
+            from benchmark.continue_session_tracker import extract_metrics_from_continue
+
+            continue_metrics = extract_metrics_from_continue(session_id)
+
+            if continue_metrics:
+                # Update metrics with Continue data
+                self.metrics["prompts_sent"] = continue_metrics.get(
+                    "prompts_sent", self.metrics["prompts_sent"]
+                )
+                self.metrics["chars_sent"] = continue_metrics.get(
+                    "chars_sent", self.metrics["chars_sent"]
+                )
+                self.metrics["chars_received"] = continue_metrics.get(
+                    "chars_received", self.metrics["chars_received"]
+                )
+                self.metrics["human_interventions"] = continue_metrics.get(
+                    "human_interventions", self.metrics["human_interventions"]
+                )
+                self.metrics["continue_session_id"] = continue_metrics.get(
+                    "continue_session_id"
+                )
+                self.metrics["tokens_prompt"] = continue_metrics.get("tokens_prompt", 0)
+                self.metrics["tokens_generated"] = continue_metrics.get(
+                    "tokens_generated", 0
+                )
+                self.metrics["tool_calls"] = continue_metrics.get("tool_calls", 0)
+
+                self.log_event("continue_metrics_imported", continue_metrics)
+                return True
+        except ImportError:
+            self.log_event("continue_import_failed", {"error": "Module not found"})
+        except Exception as e:
+            self.log_event("continue_import_error", {"error": str(e)})
+
+        return False
+
+    def complete_task(self, success=True, auto_import_continue=True):
         if self.start_time:
             self.metrics["completion_time"] = time.time() - self.start_time
+
+        # Try to import Continue session metrics automatically
+        if auto_import_continue:
+            self.import_continue_session_metrics()
 
         # Automatically capture git changes before completing
         self.capture_final_git_state()
