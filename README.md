@@ -4,6 +4,18 @@ A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test
 
 ## 🚀 New to Vibe Check?
 
+### Interactive Setup (Recommended)
+```bash
+python3 setup_wizard.py
+```
+The interactive wizard will guide you through:
+- Checking Python version and dependencies
+- Installing Ollama for local models
+- Downloading recommended models
+- Configuring the Continue extension
+- Running your first benchmark
+
+### Manual Setup
 **Start here → [QUICKSTART.md](QUICKSTART.md)** - Get from zero to running your first benchmark in 15 minutes!
 
 ## 📚 Documentation
