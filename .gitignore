@@ -53,6 +53,9 @@ benchmark/results/
 # Benchmark session files
 .benchmark_session_*.json
 
+# Sample project backup (local only)
+sample_project_backup/
+
 # Environments
 .env
 .venv
