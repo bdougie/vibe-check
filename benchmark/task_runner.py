@@ -5,12 +5,17 @@ from pathlib import Path
 
 from metrics import BenchmarkMetrics
 
+
 def get_git_diff_stats():
     """Get git diff statistics for modified files"""
     try:
         # Get list of modified files
-        result = subprocess.run(['git', 'diff', '--stat'],
-                              capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            ['git', 'diff', '--stat'],
+            capture_output=True,
+            text=True,
+            check=False
+        )
 
         if result.returncode == 0 and result.stdout:
             lines = result.stdout.strip().split('\n')
@@ -22,20 +27,21 @@ def get_git_diff_stats():
                 lines_removed = 0
 
                 parts = summary.split(',')
-                for part in parts:
-                    part = part.strip()
-                    if 'file' in part:
-                        files_modified = int(part.split()[0])
-                    elif 'insertion' in part:
-                        lines_added = int(part.split()[0])
-                    elif 'deletion' in part:
-                        lines_removed = int(part.split()[0])
-                
+                for part_item in parts:
+                    part_item = part_item.strip()
+                    if 'file' in part_item:
+                        files_modified = int(part_item.split()[0])
+                    elif 'insertion' in part_item:
+                        lines_added = int(part_item.split()[0])
+                    elif 'deletion' in part_item:
+                        lines_removed = int(part_item.split()[0])
+
                 return files_modified, lines_added, lines_removed
     except Exception as e:
         print(f"Error getting git stats: {e}")
-    
+
     return 0, 0, 0
+
 
 def run_benchmark_task(model_name, task_file):
     """Simple POC task runner"""
@@ -49,8 +55,8 @@ def run_benchmark_task(model_name, task_file):
     if not task_path.exists():
         print(f"Error: Task file not found: {task_file}")
         sys.exit(1)
-    
-    with open(task_path, 'r') as f:
+
+    with task_path.open() as f:
         task_content = f.read()
 
     print("Task Description:")
@@ -70,7 +76,7 @@ def run_benchmark_task(model_name, task_file):
     print("  • Note when you manually edit code")
     print("  • Track when you change the AI's suggestion")
     print("  • Record any issues or errors encountered")
-    
+
     print("\n" + "="*60)
     input("Press Enter when you complete the task...")
     print("="*60)
@@ -78,16 +84,16 @@ def run_benchmark_task(model_name, task_file):
     # Collect metrics
     print("\n📝 Task Completion Metrics")
     print("-" * 40)
-    
+
     success = input("Was the task completed successfully? (y/n): ").lower() == 'y'
-    
+
     # Manual input for POC
     prompts = input("How many prompts did you send? [default: 0]: ").strip()
     metrics.metrics['prompts_sent'] = int(prompts) if prompts else 0
-    
+
     interventions = input("How many times did you manually intervene? [default: 0]: ").strip()
     metrics.metrics['human_interventions'] = int(interventions) if interventions else 0
-    
+
     # Try to get git stats automatically
     files_mod, lines_add, lines_rem = get_git_diff_stats()
     if files_mod > 0:
@@ -104,40 +110,41 @@ def run_benchmark_task(model_name, task_file):
 
     # Complete and save
     result_file = metrics.complete_task(success)
-    
+
     print("\n" + "="*60)
-    print(f"✅ Benchmark completed!")
+    print("✅ Benchmark completed!")
     print(f"📁 Results saved to: {result_file}")
     print("="*60 + "\n")
+
 
 def list_available_tasks():
     """List all available benchmark tasks"""
     tasks_dir = Path("benchmark/tasks")
     if not tasks_dir.exists():
         return []
-    
+
     tasks = []
     for difficulty in ['easy', 'medium', 'hard']:
         task_path = tasks_dir / difficulty
         if task_path.exists():
-            for task_file in task_path.glob("*.md"):
-                tasks.append(str(task_file))
-    
+            tasks.extend(str(task_file) for task_file in task_path.glob("*.md"))
+
     return tasks
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         print("Usage: python benchmark/task_runner.py <model_name> <task_file>")
         print("\nExample:")
         print("  python benchmark/task_runner.py 'Claude-4-Sonnet' 'benchmark/tasks/easy/fix_typo.md'")
-        
+
         tasks = list_available_tasks()
         if tasks:
             print("\nAvailable tasks:")
             for task in tasks:
                 print(f"  • {task}")
         sys.exit(1)
-    
+
     if len(sys.argv) != 3:
         print("Error: Incorrect number of arguments")
         print("Usage: python benchmark/task_runner.py <model_name> <task_file>")

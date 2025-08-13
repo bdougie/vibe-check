@@ -20,12 +20,9 @@ def load_results():
     json_files = list(results_path.glob("*.json"))
 
     for result_file in json_files:
-        try:
-            data = json.loads(result_file.read_text())
-            data['filename'] = result_file.name
-            results.append(data)
-        except Exception as e:
-            print(f"Error loading {result_file}: {e}")
+        data = json.loads(result_file.read_text())
+        data['filename'] = result_file.name
+        results.append(data)
 
     return results
 
