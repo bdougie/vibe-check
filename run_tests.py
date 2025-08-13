@@ -4,28 +4,28 @@ Simple test runner for vibe-check benchmark framework.
 Runs basic smoke tests when pytest is not available.
 """
 
-import sys
 from pathlib import Path
+import sys
 
 
 def test_file_structure():
     """Test that all required files exist"""
     print("🧪 Testing file structure...")
     required_files = [
-        'README.md',
-        'setup.md',
-        'requirements.txt',
-        'pyproject.toml',
-        '.gitignore',
-        '.github/workflows/ci.yml',
-        'benchmark/metrics.py',
-        'benchmark/task_runner.py',
-        'benchmark_task.py',
-        'tests/__init__.py',
-        'tests/test_metrics.py',
-        'tests/test_benchmark_task.py',
-        'tests/test_task_runner.py',
-        'tests/test_analyze.py'
+        "README.md",
+        "setup.md",
+        "requirements.txt",
+        "pyproject.toml",
+        ".gitignore",
+        ".github/workflows/ci.yml",
+        "benchmark/metrics.py",
+        "benchmark/task_runner.py",
+        "benchmark_task.py",
+        "tests/__init__.py",
+        "tests/test_metrics.py",
+        "tests/test_benchmark_task.py",
+        "tests/test_task_runner.py",
+        "tests/test_analyze.py",
     ]
 
     missing_files = []
@@ -50,6 +50,7 @@ def test_imports():
     # Test benchmark.metrics import
     try:
         import benchmark.metrics
+
         print("✅ benchmark.metrics imported successfully")
     except ImportError as e:
         print(f"❌ Failed to import benchmark.metrics: {e}")
@@ -58,6 +59,7 @@ def test_imports():
     # Test benchmark_task import
     try:
         import benchmark_task  # noqa: F401
+
         print("✅ benchmark_task imported successfully")
     except ImportError as e:
         print(f"❌ Failed to import benchmark_task: {e}")
@@ -66,6 +68,7 @@ def test_imports():
     # Test benchmark.task_runner import
     try:
         import benchmark.task_runner  # noqa: F401
+
         print("✅ benchmark.task_runner imported successfully")
     except ImportError as e:
         print(f"❌ Failed to import benchmark.task_runner: {e}")
@@ -82,13 +85,13 @@ def test_basic_functionality():
     try:
         from benchmark.metrics import BenchmarkMetrics
 
-        metrics = BenchmarkMetrics('test_model', 'test_task')
+        metrics = BenchmarkMetrics("test_model", "test_task")
         print("✅ BenchmarkMetrics created successfully")
 
         # Test basic operations
         metrics.start_task()
-        metrics.log_prompt('test prompt', 'test response')
-        metrics.log_human_intervention('test_intervention')
+        metrics.log_prompt("test prompt", "test response")
+        metrics.log_human_intervention("test_intervention")
         print("✅ BenchmarkMetrics basic operations work")
 
         return True
@@ -101,18 +104,18 @@ def test_task_files():
     """Test that task files are properly formatted"""
     print("\n🧪 Testing task files...")
 
-    tasks_dir = Path('benchmark/tasks')
+    tasks_dir = Path("benchmark/tasks")
     if not tasks_dir.exists():
         print("❌ Tasks directory doesn't exist")
         return False
 
     all_valid = True
-    for difficulty in ['easy', 'medium', 'hard']:
+    for difficulty in ["easy", "medium", "hard"]:
         task_path = tasks_dir / difficulty
         if not task_path.exists():
             continue
 
-        tasks = list(task_path.glob('*.md'))
+        tasks = list(task_path.glob("*.md"))
         print(f"✅ Found {len(tasks)} {difficulty} tasks")
 
         for task_file in tasks:
@@ -120,12 +123,12 @@ def test_task_files():
 
             # Check for required sections
             required_sections = [
-                '# Task:',
-                '**Difficulty**:',
-                '## Requirements',
-                '## Expected Outcome',
-                '**Time Estimate**:',
-                '## Success Criteria'
+                "# Task:",
+                "**Difficulty**:",
+                "## Requirements",
+                "## Expected Outcome",
+                "**Time Estimate**:",
+                "## Success Criteria",
             ]
 
             valid = True
@@ -151,10 +154,10 @@ def run_all_tests():
     test_results = []
 
     # Run each test
-    test_results.append(('File Structure', test_file_structure()))
-    test_results.append(('Imports', test_imports()))
-    test_results.append(('Basic Functionality', test_basic_functionality()))
-    test_results.append(('Task Files', test_task_files()))
+    test_results.append(("File Structure", test_file_structure()))
+    test_results.append(("Imports", test_imports()))
+    test_results.append(("Basic Functionality", test_basic_functionality()))
+    test_results.append(("Task Files", test_task_files()))
 
     print("\n" + "=" * 50)
 
