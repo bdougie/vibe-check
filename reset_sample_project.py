@@ -6,10 +6,9 @@ This script restores the sample project files to their original state,
 allowing repeated benchmark testing with consistent starting conditions.
 """
 
-import os
+from pathlib import Path
 import shutil
 import subprocess
-from pathlib import Path
 
 
 def reset_sample_project():

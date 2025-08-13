@@ -9,8 +9,8 @@ HARD ISSUES:
 - No dependency injection
 """
 
-import hashlib
 import datetime
+import hashlib
 import re
 
 
@@ -47,7 +47,7 @@ class UserManager:
             return False
         
         if not password or len(password) < 8:
-            self.logs.append(f"Invalid password length")
+            self.logs.append("Invalid password length")
             return False
         
         # Repeated database simulation
@@ -97,7 +97,7 @@ class UserManager:
         
         if 'password' in updates:
             if len(updates['password']) < 8:
-                self.logs.append(f"Invalid password length")
+                self.logs.append("Invalid password length")
                 return False
             user['password'] = hashlib.sha256(updates['password'].encode()).hexdigest()
         
