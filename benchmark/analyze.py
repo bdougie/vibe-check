@@ -5,12 +5,12 @@ import json
 from pathlib import Path
 import statistics
 import sys
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
 
 # Try to import pandas and visualization libraries
 try:
-    import pandas as pd
     import matplotlib.pyplot as plt
+    import pandas as pd
     import seaborn as sns
     PANDAS_AVAILABLE = True
 except ImportError:
@@ -147,7 +147,7 @@ def analyze_with_pandas(results: List[Dict[str, Any]]):
     
     # Performance metrics by model
     print("\n⚡ Performance Metrics by Model:")
-    completed_df = df[df['task_completed'] == True]
+    completed_df = df[df['task_completed']]
     if not completed_df.empty:
         perf_df = completed_df.groupby('model').agg({
             'completion_time': 'mean',
@@ -228,7 +228,7 @@ def visualize_results():
     
     # 2. Average completion time by model
     ax2 = axes[0, 1]
-    completed_df = df[df['task_completed'] == True]
+    completed_df = df[df['task_completed']]
     if not completed_df.empty:
         avg_time = completed_df.groupby('model')['completion_time'].mean() / 60
         avg_time.plot(kind='bar', ax=ax2, color='lightcoral', edgecolor='black')
@@ -267,7 +267,7 @@ def visualize_results():
     # Show the plot if in interactive environment
     try:
         plt.show()
-    except:
+    except Exception:
         print("Cannot display plot in this environment. Check the saved file.")
 
 

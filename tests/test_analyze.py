@@ -8,9 +8,7 @@ import os
 from pathlib import Path
 import sys
 import tempfile
-from unittest.mock import patch, MagicMock, mock_open
-import io
-import csv
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -19,17 +17,17 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "benchmark"))
 
 from benchmark.analyze import (
-    load_results,
-    print_overall_stats,
-    print_model_performance,
-    print_task_performance,
-    print_intervention_analysis,
-    print_code_change_stats,
+    PANDAS_AVAILABLE,
     analyze_results,
-    export_to_csv,
     analyze_with_pandas,
+    export_to_csv,
+    load_results,
+    print_code_change_stats,
+    print_intervention_analysis,
+    print_model_performance,
+    print_overall_stats,
+    print_task_performance,
     visualize_results,
-    PANDAS_AVAILABLE
 )
 
 
@@ -98,7 +96,7 @@ class TestLoadResults:
             # Should handle the error gracefully
             with patch('json.loads', side_effect=json.JSONDecodeError("msg", "doc", 0)):
                 with pytest.raises(json.JSONDecodeError):
-                    results = load_results()
+                    load_results()
                 # Since our current implementation doesn't handle JSON errors,
                 # this would raise an error. In production, you'd want to handle this.
 
@@ -437,8 +435,8 @@ class TestPandasFunctions:
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
         
         # Mock the pandas plot method to avoid the axes issue
-        with patch('pandas.Series.plot') as mock_series_plot:
-            with patch('pandas.DataFrame.scatter') as mock_scatter:
+        with patch('pandas.Series.plot'):
+            with patch('pandas.DataFrame.scatter'):
                 visualize_results()
         
         mock_load.assert_called_once()
