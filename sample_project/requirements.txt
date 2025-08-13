@@ -1,0 +1,2 @@
+# Sample project dependencies
+# Intentionally minimal for testing purposes
