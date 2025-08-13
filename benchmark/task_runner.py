@@ -239,14 +239,14 @@ def run_benchmark_task(
 
     # Show what was captured
     if metrics.metrics.get("continue_session_id"):
-        print(f"\n✅ Continue session metrics captured:")
+        print("\n✅ Continue session metrics captured:")
         print(f"   💬 {metrics.metrics.get('prompts_sent', 0)} prompts sent")
         print(f"   🤖 {metrics.metrics.get('tokens_generated', 0)} tokens generated")
         print(f"   🔧 {metrics.metrics.get('tool_calls', 0)} tool calls")
         print(f"   ✋ {metrics.metrics.get('human_interventions', 0)} interventions")
 
     if metrics.metrics.get("files_modified", 0) > 0:
-        print(f"\n📝 Git changes captured:")
+        print("\n📝 Git changes captured:")
         print(f"   📁 {metrics.metrics['files_modified']} files modified")
         print(f"   ➕ {metrics.metrics['lines_added']} lines added")
         print(f"   ➖ {metrics.metrics['lines_removed']} lines removed")
