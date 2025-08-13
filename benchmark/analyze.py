@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import csv
+import io
 import json
 import statistics
+import sys
 from pathlib import Path
 
 def load_results():
@@ -12,7 +15,10 @@ def load_results():
         print("No results directory found. Run some benchmarks first!")
         return results
 
-    for result_file in results_path.glob("*.json"):
+    # Pre-load all files to avoid try-except in loop
+    json_files = list(results_path.glob("*.json"))
+    
+    for result_file in json_files:
         try:
             data = json.loads(result_file.read_text())
             data['filename'] = result_file.name
@@ -24,7 +30,7 @@ def load_results():
 
 def print_overall_stats(results):
     """Print overall benchmark statistics"""
-    print(f"\n📊 Overall Statistics")
+    print("\n📊 Overall Statistics")
     print("-" * 40)
     print(f"Total tasks attempted: {len(results)}")
 
@@ -46,7 +52,7 @@ def print_model_performance(results):
             models[model] = []
         models[model].append(result)
 
-    print(f"\n🤖 Performance by Model")
+    print("\n🤖 Performance by Model")
     print("-" * 40)
     print(f"{'Model':<25} {'Tasks':<8} {'Success':<10} {'Avg Time':<12} {'Prompts'}")
     print("-" * 70)
@@ -74,7 +80,7 @@ def print_task_performance(results):
             tasks[task] = []
         tasks[task].append(result)
 
-    print(f"\n📝 Performance by Task")
+    print("\n📝 Performance by Task")
     print("-" * 40)
     print(f"{'Task':<30} {'Attempts':<10} {'Success Rate':<15} {'Avg Prompts'}")
     print("-" * 70)
@@ -92,7 +98,7 @@ def print_task_performance(results):
 
 def print_intervention_analysis(results):
     """Print human intervention analysis"""
-    print(f"\n👤 Human Intervention Analysis")
+    print("\n👤 Human Intervention Analysis")
     print("-" * 40)
 
     all_interventions = [r.get('human_interventions', 0) for r in results]
@@ -108,7 +114,7 @@ def print_intervention_analysis(results):
 
 def print_code_change_stats(results):
     """Print code change statistics"""
-    print(f"\n📄 Code Change Statistics")
+    print("\n📄 Code Change Statistics")
     print("-" * 40)
 
     completed = [r for r in results if r.get('task_completed', False)]
@@ -148,9 +154,6 @@ def analyze_results():
 
 def export_to_csv():
     """Export results to CSV for further analysis"""
-    import csv
-    import io
-
     results = load_results()
     if not results:
         print("No results to export")
@@ -171,8 +174,6 @@ def export_to_csv():
     print(f"Results exported to {csv_file}")
 
 if __name__ == "__main__":
-    import sys
-    
     if len(sys.argv) > 1 and sys.argv[1] == '--export':
         export_to_csv()
     else:
