@@ -1,8 +1,11 @@
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 import subprocess
 import time
+import uuid
+import warnings
 
 
 class BenchmarkMetrics:
@@ -48,21 +51,23 @@ class BenchmarkMetrics:
     def capture_initial_git_state(self):
         """Capture the initial git state when benchmark starts"""
         try:
-            # Get current commit hash
+            # Get current commit hash with timeout
             result = subprocess.run(
                 ["git", "rev-parse", "HEAD"],
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
             commit_hash = result.stdout.strip() if result.returncode == 0 else None
 
-            # Check for uncommitted changes
+            # Check for uncommitted changes with timeout
             result = subprocess.run(
                 ["git", "status", "--porcelain"],
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
             has_uncommitted = (
                 bool(result.stdout.strip()) if result.returncode == 0 else False
@@ -75,23 +80,35 @@ class BenchmarkMetrics:
             }
 
             self.log_event("git_state_captured", self.initial_git_state)
+        except subprocess.TimeoutExpired as e:
+            self.log_event("git_state_capture_failed", {
+                "error": "Command timed out",
+                "command": e.cmd,
+                "timeout": e.timeout,
+                "working_dir": os.getcwd()
+            })
         except Exception as e:
-            self.log_event("git_state_capture_failed", {"error": str(e)})
+            self.log_event("git_state_capture_failed", {
+                "error": str(e),
+                "working_dir": os.getcwd()
+            })
 
     def get_git_diff_stats(self):
         """Get git diff statistics for modified files"""
         try:
-            # Get detailed diff stats
+            # Get detailed diff stats with timeout
             result = subprocess.run(
                 ["git", "diff", "--stat"],
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
 
             if result.returncode == 0 and result.stdout:
                 lines = result.stdout.strip().split("\n")
-                if lines and "file" in lines[-1]:
+                # Check for both singular and plural forms
+                if lines and ("file changed" in lines[-1] or "files changed" in lines[-1]):
                     # Parse the summary line
                     summary = lines[-1]
                     files_modified = 0
@@ -109,20 +126,32 @@ class BenchmarkMetrics:
                             lines_removed = int(part_item.split()[0])
 
                     return files_modified, lines_added, lines_removed
+        except subprocess.TimeoutExpired as e:
+            self.log_event("git_diff_stats_error", {
+                "error": "Command timed out",
+                "command": e.cmd,
+                "timeout": e.timeout,
+                "working_dir": os.getcwd()
+            })
         except Exception as e:
-            self.log_event("git_diff_stats_error", {"error": str(e)})
+            self.log_event("git_diff_stats_error", {
+                "error": str(e),
+                "command": "git diff --stat",
+                "working_dir": os.getcwd()
+            })
 
         return 0, 0, 0
 
     def get_detailed_git_diff(self):
         """Get detailed git diff information for each file"""
         try:
-            # Get list of modified files with stats
+            # Get list of modified files with stats with timeout
             result = subprocess.run(
                 ["git", "diff", "--numstat"],
                 capture_output=True,
                 text=True,
                 check=False,
+                timeout=30,
             )
 
             if result.returncode == 0 and result.stdout:
@@ -130,21 +159,40 @@ class BenchmarkMetrics:
                 for line in result.stdout.strip().split("\n"):
                     if line:
                         parts = line.split("\t")
-                        if len(parts) == 3:
-                            added, removed, filename = parts
-                            # Handle binary files
-                            added = 0 if added == "-" else int(added)
-                            removed = 0 if removed == "-" else int(removed)
-                            diff_details.append(
-                                {
-                                    "filename": filename,
-                                    "lines_added": added,
-                                    "lines_removed": removed,
-                                }
-                            )
+                        if len(parts) >= 3:  # Validate we have enough parts
+                            added, removed, filename = parts[:3]  # Take only first 3
+                            try:
+                                # Handle binary files and invalid numbers
+                                added = 0 if added == "-" else int(added)
+                                removed = 0 if removed == "-" else int(removed)
+                                diff_details.append(
+                                    {
+                                        "filename": filename,
+                                        "lines_added": added,
+                                        "lines_removed": removed,
+                                    }
+                                )
+                            except ValueError as e:
+                                # Log but continue processing other files
+                                self.log_event("git_parse_error", {
+                                    "error": str(e),
+                                    "line": line,
+                                    "parts": parts
+                                })
                 return diff_details
+        except subprocess.TimeoutExpired as e:
+            self.log_event("detailed_diff_error", {
+                "error": "Command timed out",
+                "command": e.cmd,
+                "timeout": e.timeout,
+                "working_dir": os.getcwd()
+            })
         except Exception as e:
-            self.log_event("detailed_diff_error", {"error": str(e)})
+            self.log_event("detailed_diff_error", {
+                "error": str(e),
+                "command": "git diff --numstat",
+                "working_dir": os.getcwd()
+            })
 
         return []
 
@@ -187,12 +235,13 @@ class BenchmarkMetrics:
         self.metrics["duration_seconds"] = self.metrics.get("completion_time", 0)
         self.log_event("task_completed", {"success": success})
 
-        # Save results
+        # Save results with UUID to prevent collisions
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        unique_id = str(uuid.uuid4())[:8]
         results_dir = Path("benchmark/results")
         results_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = results_dir / f"{self.model_name}_{self.task_name}_{timestamp}.json"
+        filename = results_dir / f"{self.model_name}_{self.task_name}_{timestamp}_{unique_id}.json"
 
         with filename.open("w") as f:
             json.dump(self.metrics, f, indent=2)
@@ -204,6 +253,13 @@ class BenchmarkMetrics:
         self.metrics["session_log"].append(event)
 
     def update_git_stats(self, files_modified, lines_added, lines_removed):
+        """Update git statistics manually (deprecated - stats are now captured automatically)"""
+        warnings.warn(
+            "update_git_stats is deprecated. Git statistics are now captured automatically "
+            "when complete_task() is called. This method will be removed in a future version.",
+            DeprecationWarning,
+            stacklevel=2
+        )
         self.metrics["files_modified"] = files_modified
         self.metrics["lines_added"] = lines_added
         self.metrics["lines_removed"] = lines_removed

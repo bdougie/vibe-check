@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 from pathlib import Path
-import subprocess
 import sys
 from typing import Optional
 
@@ -33,39 +32,6 @@ except ImportError:
 # Set up logging
 logger = logging.getLogger(__name__)
 
-
-def get_git_diff_stats():
-    """Get git diff statistics for modified files"""
-    try:
-        # Get list of modified files
-        result = subprocess.run(
-            ["git", "diff", "--stat"], capture_output=True, text=True, check=False
-        )
-
-        if result.returncode == 0 and result.stdout:
-            lines = result.stdout.strip().split("\n")
-            if lines and "files changed" in lines[-1]:
-                # Parse the summary line
-                summary = lines[-1]
-                files_modified = 0
-                lines_added = 0
-                lines_removed = 0
-
-                parts = summary.split(",")
-                for part_item in parts:
-                    part_item = part_item.strip()
-                    if "file" in part_item:
-                        files_modified = int(part_item.split()[0])
-                    elif "insertion" in part_item:
-                        lines_added = int(part_item.split()[0])
-                    elif "deletion" in part_item:
-                        lines_removed = int(part_item.split()[0])
-
-                return files_modified, lines_added, lines_removed
-    except Exception as e:
-        print(f"Error getting git stats: {e}")
-
-    return 0, 0, 0
 
 
 def check_ollama_setup(model_name: Optional[str] = None) -> bool:
