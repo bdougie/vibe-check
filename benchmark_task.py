@@ -154,9 +154,21 @@ def complete_benchmark(session_file=None):
     print("-" * 60)
     
     # Collect completion metrics
-    success = input("Was the task completed successfully? (y/n): ").lower() == 'y'
-    prompts = int(input("How many prompts did you send? ") or "0")
-    interventions = int(input("How many manual interventions? ") or "0")
+    try:
+        success_input = input("Was the task completed successfully? (y/n): ").lower()
+        success = success_input in ['y', 'yes', 'true', '1']
+        
+        prompts_input = input("How many prompts did you send? ") or "0"
+        prompts = int(prompts_input)
+        
+        interventions_input = input("How many manual interventions? ") or "0"
+        interventions = int(interventions_input)
+    except (ValueError, KeyboardInterrupt) as e:
+        print(f"\n❌ Error collecting metrics: {e}")
+        print("Using default values...")
+        success = False
+        prompts = 0
+        interventions = 0
     
     # Create and save metrics
     metrics = BenchmarkMetrics(session_data['model'], session_data['task'])
@@ -170,10 +182,19 @@ def complete_benchmark(session_file=None):
     metrics.metrics['completion_time'] = elapsed
     
     # Save results
-    result_file = metrics.complete_task(success)
+    try:
+        result_file = metrics.complete_task(success)
+        if not result_file:
+            raise ValueError("metrics.complete_task() returned None")
+    except Exception as e:
+        print(f"❌ Error saving benchmark results: {e}")
+        return
     
     # Clean up session file
-    session_path.unlink()
+    try:
+        session_path.unlink()
+    except Exception as e:
+        print(f"⚠️  Warning: Could not clean up session file {session_path}: {e}")
     
     print("\n" + "=" * 60)
     print("✅ Benchmark completed!")
