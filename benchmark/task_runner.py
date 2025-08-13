@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -10,9 +9,9 @@ def get_git_diff_stats():
     """Get git diff statistics for modified files"""
     try:
         # Get list of modified files
-        result = subprocess.run(['git', 'diff', '--stat'], 
+        result = subprocess.run(['git', 'diff', '--stat'],
                               capture_output=True, text=True, check=False)
-        
+
         if result.returncode == 0 and result.stdout:
             lines = result.stdout.strip().split('\n')
             if lines and 'files changed' in lines[-1]:
@@ -21,7 +20,7 @@ def get_git_diff_stats():
                 files_modified = 0
                 lines_added = 0
                 lines_removed = 0
-                
+
                 parts = summary.split(',')
                 for part in parts:
                     part = part.strip()
