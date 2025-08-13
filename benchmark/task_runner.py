@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 from benchmark.metrics import BenchmarkMetrics
+from benchmark.ollama_check import OllamaChecker
 
 
 def get_git_diff_stats():
@@ -40,12 +41,86 @@ def get_git_diff_stats():
     return 0, 0, 0
 
 
-def run_benchmark_task(model_name, task_file):
-    """Simple POC task runner"""
+def check_ollama_setup(model_name=None):
+    """Run Ollama pre-flight checks.
+
+    Args:
+        model_name: Optional specific model to check
+
+    Returns:
+        True if Ollama is ready, False otherwise
+    """
+    print("\n🔍 Running Ollama pre-flight checks...")
+    print("-" * 40)
+
+    checker = OllamaChecker(verbose=True)
+
+    # Check installation and service
+    if not checker.check_installation():
+        return False
+
+    if not checker.check_service_running():
+        return False
+
+    # List available models
+    models = checker.list_available_models()
+
+    # Check specific model if provided
+    if model_name and model_name.lower().startswith("ollama"):
+        # Extract model name from format like "ollama/llama2" or "ollama-llama2"
+        if "/" in model_name:
+            specific_model = model_name.split("/", 1)[1]
+        elif "-" in model_name:
+            specific_model = model_name.split("-", 1)[1]
+        else:
+            specific_model = None
+
+        if specific_model:
+            if not checker.check_model_available(specific_model):
+                print(f"\n⚠️  Model '{specific_model}' is not available locally.")
+                pull_model = input(
+                    f"Would you like to pull '{specific_model}'? (y/n): "
+                ).lower()
+                if pull_model == "y":
+                    if not checker.pull_model(specific_model):
+                        return False
+                else:
+                    print(
+                        f"Please pull the model manually: ollama pull {specific_model}"
+                    )
+                    return False
+
+    # Final check
+    if not models and model_name and model_name.lower().startswith("ollama"):
+        print("\n⚠️  No Ollama models found.")
+        print("Please pull at least one model before running benchmarks.")
+        print("Example: ollama pull llama2")
+        return False
+
+    print("\n✅ Ollama pre-flight checks passed!")
+    return True
+
+
+def run_benchmark_task(model_name, task_file, skip_ollama_check=False):
+    """Simple POC task runner
+
+    Args:
+        model_name: Name of the model to benchmark
+        task_file: Path to the task file
+        skip_ollama_check: Whether to skip Ollama setup verification
+    """
     print(f"\n{'=' * 60}")
     print(f"Starting benchmark: {model_name}")
     print(f"Task file: {task_file}")
     print(f"{'=' * 60}\n")
+
+    # Run Ollama checks if using Ollama model
+    if not skip_ollama_check and model_name.lower().startswith("ollama"):
+        if not check_ollama_setup(model_name):
+            print(
+                "\n❌ Ollama setup incomplete. Please fix the issues above and try again."
+            )
+            sys.exit(1)
 
     # Load task
     task_path = Path(task_file)
@@ -134,12 +209,22 @@ def list_available_tasks():
 
 
 if __name__ == "__main__":
+    # Check for special commands
+    if len(sys.argv) == 2 and sys.argv[1] == "--check-ollama":
+        # Run Ollama health check
+        checker = OllamaChecker(verbose=True)
+        results = checker.run_full_check()
+        sys.exit(0 if results["ready"] else 1)
+
     if len(sys.argv) == 1:
         print("Usage: python benchmark/task_runner.py <model_name> <task_file>")
+        print("       python benchmark/task_runner.py --check-ollama")
         print("\nExample:")
         print(
             "  python benchmark/task_runner.py 'Claude-4-Sonnet' 'benchmark/tasks/easy/fix_typo.md'"
         )
+        print("\nSpecial commands:")
+        print("  --check-ollama    Run Ollama installation and health check")
 
         tasks = list_available_tasks()
         if tasks:
@@ -151,6 +236,12 @@ if __name__ == "__main__":
     if len(sys.argv) != 3:
         print("Error: Incorrect number of arguments")
         print("Usage: python benchmark/task_runner.py <model_name> <task_file>")
+        print("       python benchmark/task_runner.py --check-ollama")
         sys.exit(1)
 
-    run_benchmark_task(sys.argv[1], sys.argv[2])
+    # Parse optional flags
+    skip_ollama = "--skip-ollama-check" in sys.argv
+    if skip_ollama:
+        sys.argv.remove("--skip-ollama-check")
+
+    run_benchmark_task(sys.argv[1], sys.argv[2], skip_ollama_check=skip_ollama)

@@ -38,22 +38,34 @@ uv pip install -r requirements.txt
 ### 1. Run a Benchmark Task
 
 ```bash
+# Using uv (recommended - handles dependencies automatically)
+uv run python -m benchmark.task_runner "ModelName" "benchmark/tasks/easy/fix_typo.md"
+
+# Or directly with Python
 python benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
 ```
 
 Example with specific models:
 ```bash
-# Commercial models
-python benchmark/task_runner.py "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
-python benchmark/task_runner.py "GPT-4o" "benchmark/tasks/medium/add_validation.md"
+# Commercial models (using uv)
+uv run python -m benchmark.task_runner "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+uv run python -m benchmark.task_runner "GPT-4o" "benchmark/tasks/medium/add_validation.md"
 
-# Local models (via Ollama)
-python benchmark/task_runner.py "Qwen2.5-Coder-7B" "benchmark/tasks/easy/add_gitignore_entry.md"
+# Local models via Ollama (automatic setup verification)
+uv run python -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/add_gitignore_entry.md"
+uv run python -m benchmark.task_runner "ollama/codellama" "benchmark/tasks/medium/add_validation.md"
+
+# Skip Ollama checks if you're sure everything is set up
+uv run python -m benchmark.task_runner "ollama/mistral" "benchmark/tasks/easy/fix_typo.md" --skip-ollama-check
 ```
 
 ### 2. View Available Tasks
 
 ```bash
+# Using uv
+uv run python -m benchmark.task_runner
+
+# Or directly
 python benchmark/task_runner.py
 ```
 
@@ -62,19 +74,57 @@ This will list all available benchmark tasks organized by difficulty:
 - **Medium**: Feature additions and validations (15-30 minutes)  
 - **Hard**: Refactoring and system design (1-3 hours)
 
-### 3. Analyze Results
+### 3. Check Ollama Setup (for Local Models)
+
+Before running benchmarks with Ollama models, verify your setup:
+
+```bash
+# Using uv (recommended - ensures dependencies are installed)
+uv run python -m benchmark.task_runner --check-ollama
+
+# Or run the standalone checker
+uv run python -m benchmark.ollama_check
+
+# Check specific model availability
+uv run python -m benchmark.ollama_check --model llama2
+
+# Get JSON output for automation
+uv run python -m benchmark.ollama_check --json
+
+# Auto-pull missing models
+uv run python -m benchmark.ollama_check --model codellama --pull
+```
+
+The Ollama checker will verify:
+- ✅ Ollama is installed
+- ✅ Ollama service is running
+- ✅ Available models are listed
+- ✅ Specific model requirements
+
+### 4. Analyze Results
 
 View aggregated benchmark results:
 ```bash
+# Using uv (recommended)
+uv run python -m benchmark.analyze
+
+# Or directly with Python
 python benchmark/analyze.py
 ```
 
 Export results to CSV for further analysis:
 ```bash
-python benchmark/analyze.py --export
+# Using uv
+uv run python -m benchmark.analyze --export
+
+# With pandas visualization support
+uv run python -m benchmark.analyze --visualize
+
+# Get help on available options
+uv run python -m benchmark.analyze --help
 ```
 
-### 4. Continue Integration (Optional)
+### 5. Continue Integration (Optional)
 
 If using Continue VS Code extension, start benchmarks with:
 ```bash
