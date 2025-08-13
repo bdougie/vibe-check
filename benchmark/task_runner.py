@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from metrics import BenchmarkMetrics
+from benchmark.metrics import BenchmarkMetrics
 
 
 def get_git_diff_stats():
