@@ -13,7 +13,7 @@ def test_file_structure():
     print("🧪 Testing file structure...")
     required_files = [
         "README.md",
-        "setup.md",
+        "docs/setup.md",
         "requirements.txt",
         "pyproject.toml",
         ".gitignore",

@@ -220,8 +220,8 @@ jobs:
         test -s README.md
         
         # Check that setup.md exists
-        test -f setup.md
-        test -s setup.md
+        test -f docs/setup.md
+        test -s docs/setup.md
         
         # Validate that all task files are properly formatted
         python -c "

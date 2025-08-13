@@ -248,30 +248,19 @@ def run_benchmark_task(
             int(interventions) if interventions else 0
         )
 
-    # Try to get git stats automatically
-    files_mod, lines_add, lines_rem = get_git_diff_stats()
-    if files_mod > 0:
-        print(
-            f"\nDetected git changes: {files_mod} files, +{lines_add}/-{lines_rem} lines"
-        )
-        try:
-            use_git = get_safe_user_input(
-                "Use these stats? (y/n) [default: y]: ", ["y", "n", "yes", "no", ""]
-            )
-        except ValidationError:
-            use_git = "y"  # Default to yes on validation error
+    # Git stats are now automatically captured by metrics.complete_task()
+    print("\n📊 Automatically capturing git changes...")
 
-        if use_git not in ["n", "no"]:
-            metrics.update_git_stats(files_mod, lines_add, lines_rem)
-        else:
-            files = input("How many files were modified? [default: 0]: ").strip()
-            metrics.metrics["files_modified"] = int(files) if files else 0
-    else:
-        files = input("How many files were modified? [default: 0]: ").strip()
-        metrics.metrics["files_modified"] = int(files) if files else 0
-
-    # Complete and save
+    # Complete and save (this will automatically capture git stats)
     result_file = metrics.complete_task(success)
+
+    # Show what was captured
+    if metrics.metrics.get("files_modified", 0) > 0:
+        print(
+            f"📝 Captured changes: {metrics.metrics['files_modified']} files modified"
+        )
+        print(f"   ➕ {metrics.metrics['lines_added']} lines added")
+        print(f"   ➖ {metrics.metrics['lines_removed']} lines removed")
 
     print("\n" + "=" * 60)
     print("✅ Benchmark completed!")

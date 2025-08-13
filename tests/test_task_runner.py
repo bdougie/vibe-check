@@ -116,13 +116,12 @@ class TestTaskRunner:
         # Mock git stats
         mock_git_stats.return_value = (2, 10, 3)
 
-        # Mock user inputs
+        # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
             "",  # Press Enter to start
             "y",  # Task completed successfully
             "5",  # Number of prompts
             "2",  # Number of interventions
-            "y",  # Use git stats
         ]
 
         # Mock metrics
@@ -144,8 +143,7 @@ class TestTaskRunner:
         assert mock_metrics.metrics["prompts_sent"] == 5
         assert mock_metrics.metrics["human_interventions"] == 2
 
-        # Verify git stats were updated
-        mock_metrics.update_git_stats.assert_called_once_with(2, 10, 3)
+        # Git stats are now captured automatically in complete_task, not manually
 
         # Verify task completion
         mock_metrics.complete_task.assert_called_once_with(True)
@@ -160,13 +158,12 @@ class TestTaskRunner:
         # Mock no git changes
         mock_git_stats.return_value = (0, 0, 0)
 
-        # Mock user inputs
+        # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
             "",  # Press Enter to start
             "n",  # Task failed
             "3",  # Number of prompts
             "5",  # Number of interventions
-            "1",  # Files modified (manual input since no git changes)
         ]
 
         # Mock metrics
@@ -182,8 +179,7 @@ class TestTaskRunner:
         # Verify task completion with failure
         mock_metrics.complete_task.assert_called_once_with(False)
 
-        # Verify manual file count was set
-        assert mock_metrics.metrics["files_modified"] == 1
+        # Files modified is now captured automatically by complete_task
 
     def test_run_benchmark_task_missing_file(self):
         """Test run_benchmark_task with missing task file"""
@@ -196,23 +192,25 @@ class TestTaskRunner:
     def test_run_benchmark_task_git_changes_rejected(
         self, mock_metrics_class, mock_git_stats, mock_input
     ):
-        """Test run_benchmark_task when user rejects git stats"""
-        # Mock git stats
+        """Test run_benchmark_task with automatic git tracking"""
+        # Mock git stats (no longer used in task_runner, but mocked for compatibility)
         mock_git_stats.return_value = (3, 15, 7)
 
-        # Mock user inputs
+        # Mock user inputs - git stats no longer asked
         mock_input.side_effect = [
             "",  # Press Enter to start
             "y",  # Task completed successfully
             "4",  # Number of prompts
             "1",  # Number of interventions
-            "n",  # Don't use git stats
-            "2",  # Manual file count
         ]
 
         # Mock metrics
         mock_metrics = MagicMock()
-        mock_metrics.metrics = {}  # Make metrics a real dict to track assignments
+        mock_metrics.metrics = {
+            "files_modified": 3,
+            "lines_added": 15,
+            "lines_removed": 7,
+        }  # Simulating automatic capture
         mock_metrics_class.return_value = mock_metrics
         mock_metrics.complete_task.return_value = Path("test_result.json")
 
@@ -220,11 +218,12 @@ class TestTaskRunner:
 
         run_benchmark_task("test_model", task_file)
 
-        # Verify git stats were NOT used
-        mock_metrics.update_git_stats.assert_not_called()
+        # Verify metrics were set
+        assert mock_metrics.metrics["prompts_sent"] == 4
+        assert mock_metrics.metrics["human_interventions"] == 1
 
-        # Verify manual file count was set
-        assert mock_metrics.metrics["files_modified"] == 2
+        # Git stats are now captured automatically by complete_task
+        mock_metrics.complete_task.assert_called_once_with(True)
 
     @patch("builtins.input")
     @patch("benchmark.task_runner.get_git_diff_stats")
@@ -242,7 +241,6 @@ class TestTaskRunner:
             "y",  # Task completed successfully
             "",  # Empty prompts (should default to 0)
             "",  # Empty interventions (should default to 0)
-            "",  # Empty files (should default to 0)
         ]
 
         # Mock metrics
@@ -258,7 +256,7 @@ class TestTaskRunner:
         # Verify default values were used
         assert mock_metrics.metrics["prompts_sent"] == 0
         assert mock_metrics.metrics["human_interventions"] == 0
-        assert mock_metrics.metrics["files_modified"] == 0
+        # Files modified is captured automatically by complete_task, not manually set
 
 
 @pytest.mark.integration
