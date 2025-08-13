@@ -141,8 +141,9 @@ temp/
 *.tmp
 
 # Test artifacts
-test_*.py
-*_test_*.py
+# Don't ignore test files in tests/ directory
+!tests/test_*.py
+!tests/*_test.py
 .pytest_cache/
 
 # Coverage reports

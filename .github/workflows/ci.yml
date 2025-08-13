@@ -31,10 +31,12 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
           
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        uv pip install --system -r requirements.txt
         
     - name: Create benchmark results directory
       run: |
@@ -45,8 +47,8 @@ jobs:
         # Create necessary directories
         mkdir -p benchmark/results
         
-        # Install coverage first if pytest-cov not available
-        pip install coverage pytest pytest-cov || true
+        # Ensure test dependencies are installed
+        uv pip install --system pytest pytest-cov coverage || true
         
         # Run tests with coverage (lower threshold initially)
         pytest --cov=benchmark --cov=. \
@@ -119,10 +121,12 @@ jobs:
       with:
         python-version: "3.13"
         
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      
     - name: Install linting dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        uv pip install --system -r requirements.txt
         
     - name: Run Ruff linting
       run: |
@@ -139,7 +143,7 @@ jobs:
     - name: Run MyPy type checking
       run: |
         # Install types for pandas if available
-        pip install types-requests types-setuptools || true
+        uv pip install --system types-requests types-setuptools || true
         # Run mypy on core modules (may have some issues to fix)
         mypy benchmark/ --ignore-missing-imports || true
         mypy benchmark_task.py --ignore-missing-imports || true
@@ -156,10 +160,12 @@ jobs:
       with:
         python-version: "3.13"
         
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      
     - name: Install pre-commit
       run: |
-        python -m pip install --upgrade pip
-        pip install pre-commit
+        uv pip install --system pre-commit
         
     - name: Run pre-commit hooks
       run: |
@@ -177,10 +183,12 @@ jobs:
       with:
         python-version: "3.13"
         
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
+      
     - name: Install security scanning tools
       run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety
+        uv pip install --system bandit safety
         
     - name: Run Bandit security linting
       run: |
