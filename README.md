@@ -74,32 +74,43 @@ This will list all available benchmark tasks organized by difficulty:
 - **Medium**: Feature additions and validations (15-30 minutes)  
 - **Hard**: Refactoring and system design (1-3 hours)
 
-### 3. Check Ollama Setup (for Local Models)
+### 3. Verify Models (Essential Step)
 
-Before running benchmarks with Ollama models, verify your setup:
+Check which AI models you have and what you need for benchmarking:
 
 ```bash
-# Using uv (recommended - ensures dependencies are installed)
-uv run python -m benchmark.task_runner --check-ollama
+# Run comprehensive model verification
+uv run python -m benchmark.model_verifier
 
-# Or run the standalone checker
+# Get download commands for missing models  
+uv run python -m benchmark.model_verifier --download
+
+# Get model suggestions based on your system specs
+uv run python -m benchmark.model_verifier --suggest
+
+# JSON output for automation
+uv run python -m benchmark.model_verifier --json
+```
+
+The model verifier will:
+- ✅ Check your system resources (RAM, disk space)
+- ✅ List installed vs missing models
+- ✅ Recommend models based on your system
+- ✅ Provide download commands
+- ✅ Calculate disk space requirements
+
+For Ollama-specific checks:
+
+```bash
+# Check Ollama installation and service
 uv run python -m benchmark.ollama_check
 
 # Check specific model availability
 uv run python -m benchmark.ollama_check --model llama2
 
-# Get JSON output for automation
-uv run python -m benchmark.ollama_check --json
-
 # Auto-pull missing models
 uv run python -m benchmark.ollama_check --model codellama --pull
 ```
-
-The Ollama checker will verify:
-- ✅ Ollama is installed
-- ✅ Ollama service is running
-- ✅ Available models are listed
-- ✅ Specific model requirements
 
 ### 4. Analyze Results
 
