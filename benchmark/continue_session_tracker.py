@@ -5,11 +5,11 @@ Continue Session Tracker
 Tracks and extracts metrics from Continue IDE extension session data.
 """
 
+from datetime import datetime, timedelta
 import json
 import logging
-import sqlite3
-from datetime import datetime, timedelta
 from pathlib import Path
+import sqlite3
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -153,24 +153,26 @@ class ContinueSessionTracker:
             "total_requests": 0,
             "by_model": {},
         }
-        
+
         # First try the SQLite database if it exists
         if self.devdata_db.exists():
             try:
                 conn = sqlite3.connect(self.devdata_db)
                 cursor = conn.cursor()
-                
+
                 # Check if the table exists
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT name FROM sqlite_master 
                     WHERE type='table' AND name='tokensGenerated'
-                """)
-                
+                """
+                )
+
                 if cursor.fetchone():
                     # Table exists, query it
                     if not start_time:
                         start_time = datetime.now() - timedelta(hours=1)
-                    
+
                     query = """
                         SELECT 
                             SUM(promptTokens) as total_prompt_tokens,
@@ -181,10 +183,10 @@ class ContinueSessionTracker:
                         WHERE timestamp >= ?
                         GROUP BY model
                     """
-                    
+
                     cursor.execute(query, (start_time.timestamp(),))
                     results = cursor.fetchall()
-                    
+
                     for row in results:
                         prompt_tokens, generated_tokens, requests, model = row
                         token_metrics["total_prompt_tokens"] += prompt_tokens or 0
@@ -195,28 +197,32 @@ class ContinueSessionTracker:
                             "generated_tokens": generated_tokens or 0,
                             "requests": requests or 0,
                         }
-                    
+
                     conn.close()
-                    
+
                     # Update main metrics
                     self.metrics["tokens_prompt"] = token_metrics["total_prompt_tokens"]
-                    self.metrics["tokens_generated"] = token_metrics["total_generated_tokens"]
-                    
+                    self.metrics["tokens_generated"] = token_metrics[
+                        "total_generated_tokens"
+                    ]
+
                     return token_metrics
                 else:
-                    logger.debug("tokensGenerated table does not exist in SQLite database")
+                    logger.debug(
+                        "tokensGenerated table does not exist in SQLite database"
+                    )
                     conn.close()
-                    
+
             except sqlite3.Error as e:
                 logger.debug(f"Could not query SQLite database: {e}")
-        
+
         # Fallback to JSONL file if database doesn't work
         tokens_file = self.dev_data_dir / "0.2.0" / "tokensGenerated.jsonl"
         if tokens_file.exists():
             try:
                 if not start_time:
                     start_time = datetime.now() - timedelta(hours=1)
-                
+
                 with open(tokens_file, "r") as f:
                     for line in f:
                         if line.strip():
@@ -228,34 +234,46 @@ class ContinueSessionTracker:
                                     model = entry.get("model", "unknown")
                                     prompt_tokens = entry.get("promptTokens", 0)
                                     generated_tokens = entry.get("generatedTokens", 0)
-                                    
-                                    token_metrics["total_prompt_tokens"] += prompt_tokens
-                                    token_metrics["total_generated_tokens"] += generated_tokens
+
+                                    token_metrics[
+                                        "total_prompt_tokens"
+                                    ] += prompt_tokens
+                                    token_metrics[
+                                        "total_generated_tokens"
+                                    ] += generated_tokens
                                     token_metrics["total_requests"] += 1
-                                    
+
                                     if model not in token_metrics["by_model"]:
                                         token_metrics["by_model"][model] = {
                                             "prompt_tokens": 0,
                                             "generated_tokens": 0,
                                             "requests": 0,
                                         }
-                                    
-                                    token_metrics["by_model"][model]["prompt_tokens"] += prompt_tokens
-                                    token_metrics["by_model"][model]["generated_tokens"] += generated_tokens
+
+                                    token_metrics["by_model"][model][
+                                        "prompt_tokens"
+                                    ] += prompt_tokens
+                                    token_metrics["by_model"][model][
+                                        "generated_tokens"
+                                    ] += generated_tokens
                                     token_metrics["by_model"][model]["requests"] += 1
                             except json.JSONDecodeError:
                                 continue
-                
+
                 # Update main metrics
                 self.metrics["tokens_prompt"] = token_metrics["total_prompt_tokens"]
-                self.metrics["tokens_generated"] = token_metrics["total_generated_tokens"]
-                
-                logger.debug(f"Loaded token metrics from JSONL file: {token_metrics['total_requests']} requests")
+                self.metrics["tokens_generated"] = token_metrics[
+                    "total_generated_tokens"
+                ]
+
+                logger.debug(
+                    f"Loaded token metrics from JSONL file: {token_metrics['total_requests']} requests"
+                )
                 return token_metrics
-                
+
             except IOError as e:
                 logger.debug(f"Could not read tokensGenerated.jsonl: {e}")
-        
+
         logger.debug("No token usage data available from Continue")
         return token_metrics
 
