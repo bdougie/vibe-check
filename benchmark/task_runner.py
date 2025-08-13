@@ -10,24 +10,25 @@ from benchmark.ollama_check import OllamaChecker
 
 try:
     from benchmark.validators import (
+        ValidationError,
+        get_safe_user_input,
         validate_model_name,
         validate_task_file,
-        get_safe_user_input,
-        ValidationError
     )
 except ImportError:
     # Fallback if validators module is not available
     def validate_model_name(name: str) -> str:
         return name.strip() if name else name
-    
+
     def validate_task_file(path):
         return Path(path)
-    
+
     def get_safe_user_input(prompt: str, valid_options: list) -> str:
         return input(prompt).strip().lower()
-    
+
     class ValidationError(Exception):
         pass
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -108,19 +109,19 @@ def check_ollama_setup(model_name: Optional[str] = None) -> bool:
             except ValidationError as e:
                 print(f"\n❌ Invalid model name: {e}")
                 return False
-            
+
             if not checker.check_model_available(specific_model):
                 print(f"\n⚠️  Model '{specific_model}' is not available locally.")
                 try:
                     pull_model = get_safe_user_input(
                         f"Would you like to pull '{specific_model}'? (y/n): ",
-                        ['y', 'n', 'yes', 'no']
+                        ["y", "n", "yes", "no"],
                     )
                 except ValidationError:
                     print("\n❌ Invalid input provided multiple times.")
                     return False
-                
-                if pull_model in ['y', 'yes']:
+
+                if pull_model in ["y", "yes"]:
                     if not checker.pull_model(specific_model):
                         return False
                 else:
@@ -140,7 +141,9 @@ def check_ollama_setup(model_name: Optional[str] = None) -> bool:
     return True
 
 
-def run_benchmark_task(model_name: str, task_file: str, skip_ollama_check: bool = False) -> None:
+def run_benchmark_task(
+    model_name: str, task_file: str, skip_ollama_check: bool = False
+) -> None:
     """Simple POC task runner
 
     Args:
@@ -159,7 +162,7 @@ def run_benchmark_task(model_name: str, task_file: str, skip_ollama_check: bool 
     except ValidationError as e:
         print(f"\n❌ Invalid model name: {e}")
         sys.exit(1)
-    
+
     # Run Ollama checks if using Ollama model
     if not skip_ollama_check and model_name.lower().startswith("ollama"):
         if not check_ollama_setup(model_name):
@@ -209,10 +212,9 @@ def run_benchmark_task(model_name: str, task_file: str, skip_ollama_check: bool 
 
     try:
         success_input = get_safe_user_input(
-            "Was the task completed successfully? (y/n): ",
-            ['y', 'n', 'yes', 'no']
+            "Was the task completed successfully? (y/n): ", ["y", "n", "yes", "no"]
         )
-        success = success_input in ['y', 'yes']
+        success = success_input in ["y", "yes"]
     except ValidationError:
         print("\n❌ Invalid input provided multiple times. Marking as failed.")
         success = False
@@ -234,13 +236,12 @@ def run_benchmark_task(model_name: str, task_file: str, skip_ollama_check: bool 
         )
         try:
             use_git = get_safe_user_input(
-                "Use these stats? (y/n) [default: y]: ",
-                ['y', 'n', 'yes', 'no', '']
+                "Use these stats? (y/n) [default: y]: ", ["y", "n", "yes", "no", ""]
             )
         except ValidationError:
-            use_git = 'y'  # Default to yes on validation error
-        
-        if use_git not in ['n', 'no']:
+            use_git = "y"  # Default to yes on validation error
+
+        if use_git not in ["n", "no"]:
             metrics.update_git_stats(files_mod, lines_add, lines_rem)
         else:
             files = input("How many files were modified? [default: 0]: ").strip()

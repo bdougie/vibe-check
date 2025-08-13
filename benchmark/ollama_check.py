@@ -11,18 +11,18 @@ import logging
 import shutil
 import subprocess
 import sys
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 try:
-    from benchmark.validators import validate_model_name, sanitize_error_message
+    from benchmark.validators import sanitize_error_message, validate_model_name
 except ImportError:
     # Fallback if validators module is not available
     def validate_model_name(name: str) -> str:
         return name.strip() if name else name
-    
+
     def sanitize_error_message(error: Exception) -> str:
         return str(error)
+
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -247,7 +247,7 @@ class OllamaChecker:
         except Exception as e:
             logger.warning(f"Invalid model name: {e}")
             return False
-        
+
         if not self.available_models:
             self.list_available_models()
 
@@ -269,7 +269,7 @@ class OllamaChecker:
         if not self.is_running:
             self.print_message("Cannot pull model (service not running)", "error")
             return False
-        
+
         # Validate model name to prevent command injection
         try:
             model_name = validate_model_name(model_name)
@@ -382,7 +382,7 @@ class OllamaChecker:
         except Exception as e:
             self.print_message(f"Invalid model name: {e}", "error")
             return False
-        
+
         if self.check_model_available(model_name):
             self.print_message(f"Model '{model_name}' is available", "success")
             return True

@@ -3,15 +3,12 @@
 Test suite for benchmark/analyze.py
 """
 
-import csv
-import io
 import json
 import os
 from pathlib import Path
-import statistics
 import sys
 import tempfile
-from unittest.mock import MagicMock, Mock, call, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -94,24 +91,24 @@ class TestLoadResults:
             "task_completed": True,
             "completion_time": 100,
         }
-        
+
         result_file = self.results_dir / "test_result.json"
         result_file.write_text(json.dumps(test_data))
-        
+
         # Create a mock result file object
         mock_file = MagicMock()
         mock_file.name = "test_result.json"
         mock_file.read_text.return_value = json.dumps(test_data)
-        
+
         # Patch the path to return our temp directory
         with patch("benchmark.analyze.Path") as mock_path:
             mock_results_path = MagicMock()
             mock_results_path.exists.return_value = True
             mock_results_path.glob.return_value = [mock_file]
             mock_path.return_value = mock_results_path
-            
+
             results = load_results()
-            
+
             # Should load the file successfully
             assert len(results) == 1
             assert results[0]["model"] == "test_model"
@@ -260,13 +257,18 @@ class TestPrintFunctions:
         """Test print_overall_stats with detailed checks"""
         results = self.sample_results
         print_overall_stats(results)
-        
+
         # Verify specific calculations
-        printed_text = " ".join([str(call.args[0]) if call.args else "" for call in mock_print.call_args_list])
-        
+        printed_text = " ".join(
+            [
+                str(call.args[0]) if call.args else ""
+                for call in mock_print.call_args_list
+            ]
+        )
+
         # Check completion rate calculation (2 completed out of 3 = 66.7%)
         assert "66.7%" in printed_text or "67%" in printed_text
-        
+
         # Check average completion time for completed tasks
         # (120 + 180) / 2 = 150 seconds = 2.5 minutes
         assert "2.5" in printed_text or "2.5 minutes" in printed_text
@@ -275,13 +277,18 @@ class TestPrintFunctions:
     def test_print_model_performance_detailed(self, mock_print):
         """Test print_model_performance with detailed metrics"""
         print_model_performance(self.sample_results)
-        
-        printed_text = " ".join([str(call.args[0]) if call.args else "" for call in mock_print.call_args_list])
-        
+
+        printed_text = " ".join(
+            [
+                str(call.args[0]) if call.args else ""
+                for call in mock_print.call_args_list
+            ]
+        )
+
         # Check that both models are displayed
         assert "model1" in printed_text
         assert "model2" in printed_text
-        
+
         # Check success rates
         # model1: 1/2 = 50%, model2: 1/1 = 100%
         assert "50" in printed_text
@@ -291,15 +298,20 @@ class TestPrintFunctions:
     def test_print_intervention_analysis_detailed(self, mock_print):
         """Test print_intervention_analysis with zero interventions"""
         print_intervention_analysis(self.sample_results)
-        
-        printed_text = " ".join([str(call.args[0]) if call.args else "" for call in mock_print.call_args_list])
-        
+
+        printed_text = " ".join(
+            [
+                str(call.args[0]) if call.args else ""
+                for call in mock_print.call_args_list
+            ]
+        )
+
         # Average interventions: (1 + 2 + 0) / 3 = 1.0
         assert "1.0" in printed_text or "1" in printed_text
-        
+
         # Max interventions: 2
         assert "Max interventions: 2" in printed_text
-        
+
         # Tasks without intervention: 1/3 = 33.3%
         assert "33.3%" in printed_text or "33%" in printed_text
 
@@ -564,21 +576,28 @@ class TestPandasFunctions:
                     return mock_ax3
                 elif key == (1, 1):
                     return mock_ax4
-        
+
         mock_axes = MockAxes()
         mock_plt.subplots.return_value = (mock_fig, mock_axes)
-        
+
         # Mock the path for saving
         mock_path.return_value = Path("test_path.png")
 
         # Mock pandas plotting methods
         import pandas as pd
+
         with patch.object(pd.Series, "plot", return_value=MagicMock()):
-            with patch.object(pd.DataFrame, "groupby", return_value=MagicMock(
-                __getitem__=MagicMock(return_value=MagicMock(
-                    mean=MagicMock(return_value=pd.Series([50.0]))
-                ))
-            )):
+            with patch.object(
+                pd.DataFrame,
+                "groupby",
+                return_value=MagicMock(
+                    __getitem__=MagicMock(
+                        return_value=MagicMock(
+                            mean=MagicMock(return_value=pd.Series([50.0]))
+                        )
+                    )
+                ),
+            ):
                 visualize_results()
 
         mock_load.assert_called_once()
@@ -592,10 +611,15 @@ class TestPandasFunctions:
     def test_visualize_results_no_data(self, mock_print, mock_load):
         """Test visualize_results with no results"""
         mock_load.return_value = []
-        
+
         visualize_results()
-        
-        printed_text = " ".join([str(call.args[0]) if call.args else "" for call in mock_print.call_args_list])
+
+        printed_text = " ".join(
+            [
+                str(call.args[0]) if call.args else ""
+                for call in mock_print.call_args_list
+            ]
+        )
         assert "No results to visualize" in printed_text
 
     @patch("benchmark.analyze.PANDAS_AVAILABLE", False)
@@ -665,9 +689,8 @@ class TestMainFunction:
         with patch("benchmark.analyze.visualize_results") as mock_visualize:
             # Simulate the main block behavior
             if "--visualize" in sys.argv and PANDAS_AVAILABLE:
-                from benchmark.analyze import visualize_results
                 mock_visualize()
-            
+
             # Verify visualize was called
             mock_visualize.assert_called_once()
 
@@ -684,14 +707,14 @@ class TestEdgeCases:
             {"model": "test", "task_completed": True},  # Missing task
             {"task": "task2", "task_completed": False},  # Missing model
         ]
-        
+
         # Should handle missing fields gracefully
         print_overall_stats(incomplete_results)
         print_model_performance(incomplete_results)
         print_task_performance(incomplete_results)
         print_intervention_analysis(incomplete_results)
         print_code_change_stats(incomplete_results)
-        
+
         # Verify no crashes occurred
         assert mock_print.call_count > 0
 
@@ -708,12 +731,17 @@ class TestEdgeCases:
                 "human_interventions": 1,
             }
         ]
-        
+
         print_overall_stats(single_result)
         print_model_performance(single_result)
-        
+
         # Should calculate means correctly even with single values
-        printed_text = " ".join([str(call.args[0]) if call.args else "" for call in mock_print.call_args_list])
+        printed_text = " ".join(
+            [
+                str(call.args[0]) if call.args else ""
+                for call in mock_print.call_args_list
+            ]
+        )
         assert "100.0%" in printed_text or "100%" in printed_text
 
     @pytest.mark.skipif(not PANDAS_AVAILABLE, reason="pandas not available")
@@ -751,7 +779,7 @@ class TestEdgeCases:
                 "lines_removed": 5,
             }
         ]
-        
+
         with patch("builtins.print"):
             # Should handle missing timestamp gracefully
             analyze_with_pandas(results)
@@ -769,11 +797,12 @@ class TestEdgeCases:
                 "nested_field": {"key": "value"},
             }
         ]
-        
+
         with patch("benchmark.analyze.load_results", return_value=results):
             if PANDAS_AVAILABLE:
                 # When pandas is available, we use df.to_csv
                 import pandas as pd
+
                 with patch.object(pd.DataFrame, "to_csv") as mock_to_csv:
                     with patch("builtins.print"):
                         export_to_csv()
@@ -784,10 +813,10 @@ class TestEdgeCases:
                 with patch("benchmark.analyze.Path") as mock_path:
                     mock_file = MagicMock()
                     mock_path.return_value = mock_file
-                    
+
                     with patch("builtins.print"):
                         export_to_csv()
-                    
+
                     # Should handle extra fields without crashing
                     assert mock_file.write_text.called
 
@@ -881,12 +910,12 @@ class TestAnalyzeIntegration:
                 "timestamp": "2024-01-02T12:00:00",
             },
         ]
-        
+
         with patch("benchmark.analyze.load_results", return_value=test_data):
             with patch("builtins.print"):
                 # Test pandas analysis
                 analyze_results()
-            
+
             # Test pandas export
             with patch("benchmark.analyze.Path") as mock_path:
                 mock_path.return_value = Path("test.csv")
