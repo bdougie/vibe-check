@@ -7,6 +7,17 @@ This is a minimal setup to test human-in-the-loop agentic programming locally us
 
 ## Quick Setup (15 minutes)
 
+### 🔥 Quick Verification (30 seconds)
+
+Before full setup, run a quick smoke test to verify the benchmark system works:
+
+```bash
+# Run automated smoke test (no model needed)
+python run_smoke_test.py
+```
+
+This validates that the core benchmark infrastructure is working correctly.
+
 ### 1. Install Continue
 
 - Install the [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
