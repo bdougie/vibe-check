@@ -329,6 +329,6 @@ echo "✅ All required models are installed"
 
 ## Related Documentation
 
-- [Ollama Integration Guide](OLLAMA.md) - Complete Ollama setup
+- [Ollama Integration Guide](ollama.md) - Complete Ollama setup
 - [README](../README.md) - Main documentation
 - [Benchmark Tasks](../benchmark/tasks/) - Available benchmark tasks

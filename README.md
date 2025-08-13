@@ -2,6 +2,15 @@
 
 A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test and compare how different AI models perform on real coding tasks with human collaboration.
 
+## 📚 Documentation
+
+For comprehensive documentation, see the [docs/](docs/) directory:
+- [**Setup Guide**](docs/setup.md) - Detailed setup instructions
+- [**Quick Start Guide**](docs/guide.md) - Step-by-step tutorial
+- [**Git Tracking**](docs/git-tracking.md) - Automatic code change tracking
+- [**Storage System**](docs/storage.md) - Data persistence and format
+- [**All Documentation**](docs/README.md) - Complete documentation index
+
 ## Quick Start
 
 ### Prerequisites
@@ -244,7 +253,7 @@ Create a new task file in `benchmark/tasks/{difficulty}/` with this format:
 
 ## Advanced Setup
 
-For full Continue integration and local model setup, see [setup.md](setup.md).
+For full Continue integration and local model setup, see [setup.md](docs/setup.md).
 
 ## Data Privacy
 

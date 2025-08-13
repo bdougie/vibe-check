@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import logging
 from pathlib import Path
-import subprocess
 import sys
 from typing import Optional
 
@@ -32,40 +31,6 @@ except ImportError:
 
 # Set up logging
 logger = logging.getLogger(__name__)
-
-
-def get_git_diff_stats():
-    """Get git diff statistics for modified files"""
-    try:
-        # Get list of modified files
-        result = subprocess.run(
-            ["git", "diff", "--stat"], capture_output=True, text=True, check=False
-        )
-
-        if result.returncode == 0 and result.stdout:
-            lines = result.stdout.strip().split("\n")
-            if lines and "files changed" in lines[-1]:
-                # Parse the summary line
-                summary = lines[-1]
-                files_modified = 0
-                lines_added = 0
-                lines_removed = 0
-
-                parts = summary.split(",")
-                for part_item in parts:
-                    part_item = part_item.strip()
-                    if "file" in part_item:
-                        files_modified = int(part_item.split()[0])
-                    elif "insertion" in part_item:
-                        lines_added = int(part_item.split()[0])
-                    elif "deletion" in part_item:
-                        lines_removed = int(part_item.split()[0])
-
-                return files_modified, lines_added, lines_removed
-    except Exception as e:
-        print(f"Error getting git stats: {e}")
-
-    return 0, 0, 0
 
 
 def check_ollama_setup(model_name: Optional[str] = None) -> bool:
@@ -248,30 +213,19 @@ def run_benchmark_task(
             int(interventions) if interventions else 0
         )
 
-    # Try to get git stats automatically
-    files_mod, lines_add, lines_rem = get_git_diff_stats()
-    if files_mod > 0:
-        print(
-            f"\nDetected git changes: {files_mod} files, +{lines_add}/-{lines_rem} lines"
-        )
-        try:
-            use_git = get_safe_user_input(
-                "Use these stats? (y/n) [default: y]: ", ["y", "n", "yes", "no", ""]
-            )
-        except ValidationError:
-            use_git = "y"  # Default to yes on validation error
+    # Git stats are now automatically captured by metrics.complete_task()
+    print("\n📊 Automatically capturing git changes...")
 
-        if use_git not in ["n", "no"]:
-            metrics.update_git_stats(files_mod, lines_add, lines_rem)
-        else:
-            files = input("How many files were modified? [default: 0]: ").strip()
-            metrics.metrics["files_modified"] = int(files) if files else 0
-    else:
-        files = input("How many files were modified? [default: 0]: ").strip()
-        metrics.metrics["files_modified"] = int(files) if files else 0
-
-    # Complete and save
+    # Complete and save (this will automatically capture git stats)
     result_file = metrics.complete_task(success)
+
+    # Show what was captured
+    if metrics.metrics.get("files_modified", 0) > 0:
+        print(
+            f"📝 Captured changes: {metrics.metrics['files_modified']} files modified"
+        )
+        print(f"   ➕ {metrics.metrics['lines_added']} lines added")
+        print(f"   ➖ {metrics.metrics['lines_removed']} lines removed")
 
     print("\n" + "=" * 60)
     print("✅ Benchmark completed!")

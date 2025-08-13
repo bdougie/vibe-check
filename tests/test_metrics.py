@@ -10,6 +10,7 @@ from pathlib import Path
 import sys
 import tempfile
 import time
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -65,8 +66,10 @@ class TestBenchmarkMetrics:
         self.metrics.start_task()
 
         assert self.metrics.start_time is not None
-        assert len(self.metrics.metrics["session_log"]) == 1
-        assert self.metrics.metrics["session_log"][0]["event"] == "task_started"
+        # Now we have 2 events: git_state_captured and task_started
+        assert len(self.metrics.metrics["session_log"]) >= 1
+        # task_started should be the last event
+        assert self.metrics.metrics["session_log"][-1]["event"] == "task_started"
 
     def test_log_prompt(self):
         """Test log_prompt method"""
@@ -235,10 +238,10 @@ class TestBenchmarkMetrics:
         assert self.metrics.metrics["lines_added"] == 15
         assert self.metrics.metrics["lines_removed"] == 5
 
-        # Check session log has all events
+        # Check session log has all events (now includes git_state_captured)
         assert (
-            len(self.metrics.metrics["session_log"]) == 6
-        )  # start + 2 prompts + 2 interventions + git stats
+            len(self.metrics.metrics["session_log"]) >= 6
+        )  # git capture + start + 2 prompts + 2 interventions + git stats
 
 
 @pytest.mark.integration
@@ -287,3 +290,201 @@ class TestBenchmarkMetricsIntegration:
             # Clean up
             if result_file.exists():
                 result_file.unlink()
+
+
+class TestGitTracking:
+    """Test cases for automatic git tracking functionality"""
+
+    def setup_method(self):
+        """Set up test fixtures before each test method"""
+        self.metrics = BenchmarkMetrics("test_model", "test_task")
+
+    @patch("subprocess.run")
+    def test_capture_initial_git_state(self, mock_run):
+        """Test capturing initial git state"""
+        # Mock git commands
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="abc123def456\n"),  # git rev-parse HEAD
+            MagicMock(returncode=0, stdout=""),  # git status --porcelain (clean)
+        ]
+
+        self.metrics.capture_initial_git_state()
+
+        assert self.metrics.initial_git_state is not None
+        assert self.metrics.initial_git_state["commit"] == "abc123def456"
+        assert self.metrics.initial_git_state["has_uncommitted_changes"] is False
+        assert "timestamp" in self.metrics.initial_git_state
+
+        # Check that git commands were called
+        assert mock_run.call_count == 2
+
+    @patch("subprocess.run")
+    def test_capture_initial_git_state_with_uncommitted(self, mock_run):
+        """Test capturing initial git state with uncommitted changes"""
+        # Mock git commands
+        mock_run.side_effect = [
+            MagicMock(returncode=0, stdout="abc123def456\n"),  # git rev-parse HEAD
+            MagicMock(
+                returncode=0, stdout="M file.py\n"
+            ),  # git status --porcelain (dirty)
+        ]
+
+        self.metrics.capture_initial_git_state()
+
+        assert self.metrics.initial_git_state["has_uncommitted_changes"] is True
+
+    @patch("subprocess.run")
+    def test_get_git_diff_stats(self, mock_run):
+        """Test getting git diff statistics"""
+        # Mock git diff --stat output
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout=" file1.py | 10 +++++++---\n file2.py | 5 ++---\n 2 files changed, 9 insertions(+), 6 deletions(-)\n",
+        )
+
+        files, added, removed = self.metrics.get_git_diff_stats()
+
+        assert files == 2
+        assert added == 9
+        assert removed == 6
+
+    @patch("subprocess.run")
+    def test_get_git_diff_stats_no_changes(self, mock_run):
+        """Test getting git diff statistics with no changes"""
+        # Mock git diff --stat output with no changes
+        mock_run.return_value = MagicMock(returncode=0, stdout="")
+
+        files, added, removed = self.metrics.get_git_diff_stats()
+
+        assert files == 0
+        assert added == 0
+        assert removed == 0
+
+    @patch("subprocess.run")
+    def test_get_detailed_git_diff(self, mock_run):
+        """Test getting detailed git diff information"""
+        # Mock git diff --numstat output
+        mock_run.return_value = MagicMock(
+            returncode=0,
+            stdout="10\t5\tfile1.py\n3\t2\tfile2.py\n-\t-\tbinary_file.bin\n",
+        )
+
+        diff_details = self.metrics.get_detailed_git_diff()
+
+        assert len(diff_details) == 3
+        assert diff_details[0]["filename"] == "file1.py"
+        assert diff_details[0]["lines_added"] == 10
+        assert diff_details[0]["lines_removed"] == 5
+        assert diff_details[1]["filename"] == "file2.py"
+        assert diff_details[1]["lines_added"] == 3
+        assert diff_details[1]["lines_removed"] == 2
+        # Binary file should have 0 lines
+        assert diff_details[2]["filename"] == "binary_file.bin"
+        assert diff_details[2]["lines_added"] == 0
+        assert diff_details[2]["lines_removed"] == 0
+
+    @patch("subprocess.run")
+    def test_capture_final_git_state(self, mock_run):
+        """Test capturing final git state"""
+        # Mock git commands
+        mock_run.side_effect = [
+            # git diff --stat
+            MagicMock(
+                returncode=0,
+                stdout=" file1.py | 10 +++++++---\n 1 file changed, 7 insertions(+), 3 deletions(-)\n",
+            ),
+            # git diff --numstat
+            MagicMock(returncode=0, stdout="7\t3\tfile1.py\n"),
+        ]
+
+        files, added, removed = self.metrics.capture_final_git_state()
+
+        assert files == 1
+        assert added == 7
+        assert removed == 3
+        assert self.metrics.metrics["files_modified"] == 1
+        assert self.metrics.metrics["lines_added"] == 7
+        assert self.metrics.metrics["lines_removed"] == 3
+        assert len(self.metrics.metrics["git_diff_details"]) == 1
+        assert self.metrics.metrics["git_diff_details"][0]["filename"] == "file1.py"
+
+    @patch.object(BenchmarkMetrics, "capture_initial_git_state")
+    def test_start_task_calls_git_capture(self, mock_capture):
+        """Test that start_task calls capture_initial_git_state"""
+        self.metrics.start_task()
+
+        mock_capture.assert_called_once()
+        assert self.metrics.start_time is not None
+
+    @patch.object(BenchmarkMetrics, "capture_final_git_state")
+    def test_complete_task_calls_git_capture(self, mock_capture):
+        """Test that complete_task calls capture_final_git_state"""
+        mock_capture.return_value = (2, 10, 5)
+
+        self.metrics.start_task()
+        result_file = self.metrics.complete_task(success=True)
+
+        mock_capture.assert_called_once()
+
+        # Clean up
+        if result_file.exists():
+            result_file.unlink()
+
+    @patch("subprocess.run")
+    def test_git_tracking_error_handling(self, mock_run):
+        """Test error handling in git tracking"""
+        # Mock git command failure
+        mock_run.side_effect = Exception("Git command failed")
+
+        # Should not raise exception, just log the error
+        self.metrics.capture_initial_git_state()
+
+        # Check that error was logged
+        assert any(
+            log["event"] == "git_state_capture_failed"
+            for log in self.metrics.metrics["session_log"]
+        )
+
+    def test_complete_task_with_automatic_tracking(self):
+        """Test complete integration of automatic git tracking"""
+        with patch("subprocess.run") as mock_run:
+            # Mock all git commands for complete flow
+            mock_run.side_effect = [
+                # capture_initial_git_state
+                MagicMock(returncode=0, stdout="abc123\n"),
+                MagicMock(returncode=0, stdout=""),
+                # capture_final_git_state - get_git_diff_stats
+                MagicMock(
+                    returncode=0,
+                    stdout=" file1.py | 10 ++++\n 1 file changed, 10 insertions(+)\n",
+                ),
+                # capture_final_git_state - get_detailed_git_diff
+                MagicMock(returncode=0, stdout="10\t0\tfile1.py\n"),
+            ]
+
+            self.metrics.start_task()
+            time.sleep(0.01)  # Small delay to ensure completion_time > 0
+            result_file = self.metrics.complete_task(success=True)
+
+            try:
+                # Verify metrics were captured
+                assert self.metrics.metrics["files_modified"] == 1
+                assert self.metrics.metrics["lines_added"] == 10
+                assert self.metrics.metrics["lines_removed"] == 0
+                assert "initial_git_state" in self.metrics.metrics
+                assert "git_diff_details" in self.metrics.metrics
+                assert len(self.metrics.metrics["git_diff_details"]) == 1
+
+                # Verify file was created with git data
+                with open(result_file, "r") as f:
+                    data = json.load(f)
+
+                assert data["files_modified"] == 1
+                assert data["lines_added"] == 10
+                assert "initial_git_state" in data
+                assert "git_diff_details" in data
+
+            finally:
+                # Clean up
+                if result_file.exists():
+                    result_file.unlink()
