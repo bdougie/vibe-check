@@ -268,15 +268,15 @@ class BatchRunner:
             self.console.print(f"\n[bold]Batch ID:[/bold] {self.batch_id}")
             self.console.print(f"[bold]Output Directory:[/bold] {self.output_dir}\n")
         else:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"Batch Benchmark: {task_name}")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(f"Batch ID: {self.batch_id}")
             print(f"Output Directory: {self.output_dir}")
             print(f"\nModels to test ({len(models)}):")
             for model in models:
                 print(f"  • {model['display_name']} ({model['provider']})")
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
     def _run_with_progress(
         self, task_file: str, task_name: str, models: List[Dict], timeout: int
@@ -292,7 +292,6 @@ class BatchRunner:
             TimeRemainingColumn(),
             console=self.console,
         ) as progress:
-
             task = progress.add_task("[cyan]Running benchmarks...", total=len(models))
 
             for i, model in enumerate(models):
@@ -500,7 +499,7 @@ class BatchRunner:
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Benchmark Comparison - {comparison['task']}</title>
+            <title>Benchmark Comparison - {comparison["task"]}</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 20px; }}
                 h1 {{ color: #333; }}
@@ -517,12 +516,12 @@ class BatchRunner:
             <h1>Benchmark Comparison Report</h1>
             <div class="summary">
                 <h2>Summary</h2>
-                <p><strong>Batch ID:</strong> {comparison['batch_id']}</p>
-                <p><strong>Task:</strong> {comparison['task']}</p>
-                <p><strong>Total Time:</strong> {comparison['total_time']:.2f} seconds</p>
-                <p><strong>Models Tested:</strong> {comparison['models_tested']}</p>
-                <p><strong>Successful:</strong> <span class="success">{comparison['successful']}</span></p>
-                <p><strong>Failed:</strong> <span class="failed">{comparison['failed']}</span></p>
+                <p><strong>Batch ID:</strong> {comparison["batch_id"]}</p>
+                <p><strong>Task:</strong> {comparison["task"]}</p>
+                <p><strong>Total Time:</strong> {comparison["total_time"]:.2f} seconds</p>
+                <p><strong>Models Tested:</strong> {comparison["models_tested"]}</p>
+                <p><strong>Successful:</strong> <span class="success">{comparison["successful"]}</span></p>
+                <p><strong>Failed:</strong> <span class="failed">{comparison["failed"]}</span></p>
             </div>
             
             <h2>Results</h2>
@@ -545,12 +544,12 @@ class BatchRunner:
             )
             html_content += f"""
                 <tr>
-                    <td>{result['model']}</td>
+                    <td>{result["model"]}</td>
                     <td>{status}</td>
-                    <td>{result['completion_time']:.2f}</td>
-                    <td>{result['prompts_sent']}</td>
-                    <td>{result['human_interventions']}</td>
-                    <td>{result['files_modified']}</td>
+                    <td>{result["completion_time"]:.2f}</td>
+                    <td>{result["prompts_sent"]}</td>
+                    <td>{result["human_interventions"]}</td>
+                    <td>{result["files_modified"]}</td>
                 </tr>
             """
 
@@ -562,9 +561,9 @@ class BatchRunner:
             html_content += f"""
             <div class="summary">
                 <h2>Rankings</h2>
-                <p><strong>🏆 Fastest:</strong> {comparison['rankings']['fastest']}</p>
-                <p><strong>💬 Most Efficient (fewest prompts):</strong> {comparison['rankings']['most_efficient']}</p>
-                <p><strong>🤖 Most Autonomous (least intervention):</strong> {comparison['rankings']['least_intervention']}</p>
+                <p><strong>🏆 Fastest:</strong> {comparison["rankings"]["fastest"]}</p>
+                <p><strong>💬 Most Efficient (fewest prompts):</strong> {comparison["rankings"]["most_efficient"]}</p>
+                <p><strong>🤖 Most Autonomous (least intervention):</strong> {comparison["rankings"]["least_intervention"]}</p>
             </div>
             """
 
@@ -652,9 +651,9 @@ class BatchRunner:
                 f"\n[bold green]✅ Results saved to:[/bold green] {self.output_dir}"
             )
         else:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print("Batch Benchmark Complete!")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             print(f"Batch ID: {comparison['batch_id']}")
             print(f"Task: {comparison['task']}")
             print(f"Total Time: {comparison['total_time']:.2f} seconds")
@@ -663,7 +662,7 @@ class BatchRunner:
             print(f"Failed: {comparison['failed']}")
 
             if comparison.get("rankings") and comparison["rankings"].get("fastest"):
-                print(f"\n{'='*60}")
+                print(f"\n{'=' * 60}")
                 print("Performance Rankings:")
                 print(f"🏆 Fastest: {comparison['rankings']['fastest']}")
                 print(f"💬 Most Efficient: {comparison['rankings']['most_efficient']}")
@@ -672,7 +671,7 @@ class BatchRunner:
                 )
 
             print(f"\n✅ Results saved to: {self.output_dir}")
-            print(f"{'='*60}\n")
+            print(f"{'=' * 60}\n")
 
 
 def main():
