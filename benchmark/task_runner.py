@@ -33,7 +33,6 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-
 def check_ollama_setup(model_name: Optional[str] = None) -> bool:
     """Run Ollama pre-flight checks.
 

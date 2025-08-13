@@ -49,9 +49,7 @@ class TestTaskRunner:
 
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_success(
-        self, mock_metrics_class, mock_input
-    ):
+    def test_run_benchmark_task_success(self, mock_metrics_class, mock_input):
         """Test run_benchmark_task with successful completion"""
         # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
@@ -87,9 +85,7 @@ class TestTaskRunner:
 
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_failure(
-        self, mock_metrics_class, mock_input
-    ):
+    def test_run_benchmark_task_failure(self, mock_metrics_class, mock_input):
         """Test run_benchmark_task with task failure"""
         # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
@@ -156,9 +152,7 @@ class TestTaskRunner:
 
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_default_values(
-        self, mock_metrics_class, mock_input
-    ):
+    def test_run_benchmark_task_default_values(self, mock_metrics_class, mock_input):
         """Test run_benchmark_task with default values for empty inputs"""
         # Mock user inputs with empty strings (should use defaults)
         mock_input.side_effect = [

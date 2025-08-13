@@ -81,17 +81,20 @@ class BenchmarkMetrics:
 
             self.log_event("git_state_captured", self.initial_git_state)
         except subprocess.TimeoutExpired as e:
-            self.log_event("git_state_capture_failed", {
-                "error": "Command timed out",
-                "command": e.cmd,
-                "timeout": e.timeout,
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "git_state_capture_failed",
+                {
+                    "error": "Command timed out",
+                    "command": e.cmd,
+                    "timeout": e.timeout,
+                    "working_dir": os.getcwd(),
+                },
+            )
         except Exception as e:
-            self.log_event("git_state_capture_failed", {
-                "error": str(e),
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "git_state_capture_failed",
+                {"error": str(e), "working_dir": os.getcwd()},
+            )
 
     def get_git_diff_stats(self):
         """Get git diff statistics for modified files"""
@@ -108,7 +111,9 @@ class BenchmarkMetrics:
             if result.returncode == 0 and result.stdout:
                 lines = result.stdout.strip().split("\n")
                 # Check for both singular and plural forms
-                if lines and ("file changed" in lines[-1] or "files changed" in lines[-1]):
+                if lines and (
+                    "file changed" in lines[-1] or "files changed" in lines[-1]
+                ):
                     # Parse the summary line
                     summary = lines[-1]
                     files_modified = 0
@@ -127,18 +132,24 @@ class BenchmarkMetrics:
 
                     return files_modified, lines_added, lines_removed
         except subprocess.TimeoutExpired as e:
-            self.log_event("git_diff_stats_error", {
-                "error": "Command timed out",
-                "command": e.cmd,
-                "timeout": e.timeout,
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "git_diff_stats_error",
+                {
+                    "error": "Command timed out",
+                    "command": e.cmd,
+                    "timeout": e.timeout,
+                    "working_dir": os.getcwd(),
+                },
+            )
         except Exception as e:
-            self.log_event("git_diff_stats_error", {
-                "error": str(e),
-                "command": "git diff --stat",
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "git_diff_stats_error",
+                {
+                    "error": str(e),
+                    "command": "git diff --stat",
+                    "working_dir": os.getcwd(),
+                },
+            )
 
         return 0, 0, 0
 
@@ -174,25 +185,30 @@ class BenchmarkMetrics:
                                 )
                             except ValueError as e:
                                 # Log but continue processing other files
-                                self.log_event("git_parse_error", {
-                                    "error": str(e),
-                                    "line": line,
-                                    "parts": parts
-                                })
+                                self.log_event(
+                                    "git_parse_error",
+                                    {"error": str(e), "line": line, "parts": parts},
+                                )
                 return diff_details
         except subprocess.TimeoutExpired as e:
-            self.log_event("detailed_diff_error", {
-                "error": "Command timed out",
-                "command": e.cmd,
-                "timeout": e.timeout,
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "detailed_diff_error",
+                {
+                    "error": "Command timed out",
+                    "command": e.cmd,
+                    "timeout": e.timeout,
+                    "working_dir": os.getcwd(),
+                },
+            )
         except Exception as e:
-            self.log_event("detailed_diff_error", {
-                "error": str(e),
-                "command": "git diff --numstat",
-                "working_dir": os.getcwd()
-            })
+            self.log_event(
+                "detailed_diff_error",
+                {
+                    "error": str(e),
+                    "command": "git diff --numstat",
+                    "working_dir": os.getcwd(),
+                },
+            )
 
         return []
 
@@ -241,7 +257,10 @@ class BenchmarkMetrics:
         results_dir = Path("benchmark/results")
         results_dir.mkdir(parents=True, exist_ok=True)
 
-        filename = results_dir / f"{self.model_name}_{self.task_name}_{timestamp}_{unique_id}.json"
+        filename = (
+            results_dir
+            / f"{self.model_name}_{self.task_name}_{timestamp}_{unique_id}.json"
+        )
 
         with filename.open("w") as f:
             json.dump(self.metrics, f, indent=2)
@@ -258,7 +277,7 @@ class BenchmarkMetrics:
             "update_git_stats is deprecated. Git statistics are now captured automatically "
             "when complete_task() is called. This method will be removed in a future version.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         self.metrics["files_modified"] = files_modified
         self.metrics["lines_added"] = lines_added
