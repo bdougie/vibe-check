@@ -235,12 +235,12 @@ class ContinueSessionTracker:
                                     prompt_tokens = entry.get("promptTokens", 0)
                                     generated_tokens = entry.get("generatedTokens", 0)
 
-                                    token_metrics["total_prompt_tokens"] += (
-                                        prompt_tokens
-                                    )
-                                    token_metrics["total_generated_tokens"] += (
-                                        generated_tokens
-                                    )
+                                    token_metrics[
+                                        "total_prompt_tokens"
+                                    ] += prompt_tokens
+                                    token_metrics[
+                                        "total_generated_tokens"
+                                    ] += generated_tokens
                                     token_metrics["total_requests"] += 1
 
                                     if model not in token_metrics["by_model"]:
