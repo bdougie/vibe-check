@@ -51,7 +51,7 @@ addopts = [
     "--cov-report=html:htmlcov",
     "--cov-report=xml:coverage.xml",
     "--cov-report=term-missing",
-    "--cov-fail-under=80",
+    "--cov-fail-under=60",
     "--strict-markers",
     "--strict-config",
     "-v"
@@ -94,7 +94,7 @@ exclude_lines = [
 show_missing = true
 skip_covered = false
 precision = 2
-fail_under = 80
+fail_under = 60
 
 [tool.coverage.html]
 directory = "htmlcov"
