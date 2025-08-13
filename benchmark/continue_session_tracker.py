@@ -233,14 +233,14 @@ class ContinueSessionTracker:
                                 if entry_time >= start_time.timestamp():
                                     model = entry.get("model", "unknown")
                                     prompt_tokens = entry.get("promptTokens", 0)
-                                    generated_tokens = entry.get("generatedTokens", 0)
+                                    gen_tokens = entry.get("generatedTokens", 0)
 
                                     token_metrics[
                                         "total_prompt_tokens"
                                     ] += prompt_tokens
                                     token_metrics[
                                         "total_generated_tokens"
-                                    ] += generated_tokens
+                                    ] += gen_tokens
                                     token_metrics["total_requests"] += 1
 
                                     if model not in token_metrics["by_model"]:
@@ -255,7 +255,7 @@ class ContinueSessionTracker:
                                     ] += prompt_tokens
                                     token_metrics["by_model"][model][
                                         "generated_tokens"
-                                    ] += generated_tokens
+                                    ] += gen_tokens
                                     token_metrics["by_model"][model]["requests"] += 1
                             except json.JSONDecodeError:
                                 continue
