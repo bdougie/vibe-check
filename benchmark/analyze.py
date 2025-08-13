@@ -6,6 +6,7 @@ import statistics
 import sys
 from pathlib import Path
 
+
 def load_results():
     """Load all benchmark results from the results directory"""
     results = []
@@ -17,7 +18,7 @@ def load_results():
 
     # Pre-load all files to avoid try-except in loop
     json_files = list(results_path.glob("*.json"))
-    
+
     for result_file in json_files:
         try:
             data = json.loads(result_file.read_text())
@@ -27,6 +28,7 @@ def load_results():
             print(f"Error loading {result_file}: {e}")
 
     return results
+
 
 def print_overall_stats(results):
     """Print overall benchmark statistics"""
@@ -152,6 +154,7 @@ def analyze_results():
 
     print("\n" + "="*70 + "\n")
 
+
 def export_to_csv():
     """Export results to CSV for further analysis"""
     results = load_results()
@@ -172,6 +175,7 @@ def export_to_csv():
 
     csv_file.write_text(output.getvalue())
     print(f"Results exported to {csv_file}")
+
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == '--export':

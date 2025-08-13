@@ -1,7 +1,8 @@
-import time
 import json
+import time
 from datetime import datetime
 from pathlib import Path
+
 
 class BenchmarkMetrics:
     def __init__(self, model_name, task_name):
@@ -50,12 +51,12 @@ class BenchmarkMetrics:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_dir = Path("benchmark/results")
         results_dir.mkdir(parents=True, exist_ok=True)
-        
+
         filename = results_dir / f"{self.model_name}_{self.task_name}_{timestamp}.json"
 
-        with open(filename, 'w') as f:
+        with filename.open('w') as f:
             json.dump(self.metrics, f, indent=2)
-        
+
         return filename
 
     def log_event(self, event_type, data=None):

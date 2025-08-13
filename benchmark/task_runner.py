@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
+
 from metrics import BenchmarkMetrics
 
 def get_git_diff_stats():
