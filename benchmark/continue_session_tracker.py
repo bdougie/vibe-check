@@ -2,15 +2,14 @@
 """
 Continue Session Tracker
 
-Automatically extracts metrics from Continue's session data and telemetry,
-eliminating the need for manual input during benchmarks.
+Tracks and extracts metrics from Continue IDE extension session data.
 """
 
-from datetime import datetime, timedelta
 import json
 import logging
-from pathlib import Path
 import sqlite3
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -62,81 +61,80 @@ class ContinueSessionTracker:
 
             return None
 
-        except (json.JSONDecodeError, KeyError) as e:
+        except (json.JSONDecodeError, IOError) as e:
             logger.error(f"Error reading sessions file: {e}")
             return None
 
-    def load_session(self, session_id: str = None) -> bool:
-        """Load a Continue session by ID or find the latest one."""
-        if not session_id:
-            session_id = self.find_latest_session()
-            if not session_id:
-                logger.warning("No Continue sessions found")
-                return False
-
+    def load_session(self, session_id: str) -> Optional[Dict]:
+        """Load a specific Continue session by ID."""
         session_file = self.sessions_dir / f"{session_id}.json"
 
         if not session_file.exists():
             logger.warning(f"Session file not found: {session_file}")
-            return False
+            return None
 
         try:
             with open(session_file, "r") as f:
-                self.session_data = json.load(f)
+                data = json.load(f)
                 self.current_session_id = session_id
+                self.session_data = data
+                return data
+        except (json.JSONDecodeError, IOError) as e:
+            logger.error(f"Error reading session file: {e}")
+            return None
 
-            logger.info(f"Loaded session: {session_id}")
-            return True
-
-        except json.JSONDecodeError as e:
-            logger.error(f"Error loading session file: {e}")
-            return False
-
-    def parse_session_messages(self) -> Dict:
-        """Parse messages and tool calls from the loaded session."""
+    def extract_metrics(self) -> Dict:
+        """Extract metrics from the loaded session data."""
         if not self.session_data:
+            logger.warning("No session data loaded")
             return self.metrics
 
+        # Reset metrics
+        self.metrics = {
+            "prompts_sent": 0,
+            "tokens_generated": 0,
+            "tokens_prompt": 0,
+            "tool_calls": [],
+            "messages": [],
+            "session_duration": 0,
+            "models_used": set(),
+            "errors": [],
+            "continue_session_id": self.current_session_id,
+        }
+
+        # Extract history items
         history = self.session_data.get("history", [])
 
         for item in history:
-            if isinstance(item, dict):
-                # Count user prompts
-                if item.get("role") == "user":
-                    self.metrics["prompts_sent"] += 1
-                    self.metrics["messages"].append(
-                        {
-                            "role": "user",
-                            "content": item.get("content", "")[:100],  # First 100 chars
-                            "timestamp": item.get("timestamp"),
-                        }
-                    )
+            if not isinstance(item, dict):
+                continue
 
-                # Count assistant responses
-                elif item.get("role") == "assistant":
-                    self.metrics["messages"].append(
-                        {
-                            "role": "assistant",
-                            "content": item.get("content", "")[:100],
-                            "timestamp": item.get("timestamp"),
-                        }
-                    )
+            # Count prompts (user messages)
+            if item.get("role") == "user":
+                self.metrics["prompts_sent"] += 1
+                self.metrics["messages"].append(
+                    {"role": "user", "content": item.get("content", "")[:100]}
+                )
 
-                    # Extract model information if available
-                    if "model" in item:
-                        self.metrics["models_used"].add(item["model"])
+            # Count assistant responses
+            elif item.get("role") == "assistant":
+                content = item.get("content", "")
+                self.metrics["messages"].append(
+                    {"role": "assistant", "content": content[:100]}
+                )
 
-                # Look for tool calls
-                if "toolCalls" in item or "tool_calls" in item:
-                    tool_calls = item.get("toolCalls") or item.get("tool_calls", [])
-                    for tool_call in tool_calls:
+                # Track model used
+                if "model" in item:
+                    self.metrics["models_used"].add(item["model"])
+
+            # Extract tool calls
+            if "tool_calls" in item and isinstance(item["tool_calls"], list):
+                for tool_call in item["tool_calls"]:
+                    if isinstance(tool_call, dict):
                         self.metrics["tool_calls"].append(
                             {
-                                "name": tool_call.get("function", {}).get(
+                                "function": tool_call.get("function", {}).get(
                                     "name", "unknown"
-                                ),
-                                "arguments": tool_call.get("function", {}).get(
-                                    "arguments", {}
                                 ),
                                 "id": tool_call.get("id"),
                             }
@@ -148,65 +146,118 @@ class ContinueSessionTracker:
         return self.metrics
 
     def get_token_usage_from_db(self, start_time: datetime = None) -> Dict:
-        """Extract token usage metrics from Continue's SQLite database."""
-        if not self.devdata_db.exists():
-            logger.warning(f"DevData database not found: {self.devdata_db}")
-            return {}
-
-        try:
-            conn = sqlite3.connect(self.devdata_db)
-            cursor = conn.cursor()
-
-            # If no start time provided, get data from last hour
-            if not start_time:
-                start_time = datetime.now() - timedelta(hours=1)
-
-            # Query token usage data
-            # The schema may vary, but typically includes:
-            # model, provider, promptTokens, generatedTokens, timestamp
-            query = """
-                SELECT 
-                    SUM(promptTokens) as total_prompt_tokens,
-                    SUM(generatedTokens) as total_generated_tokens,
-                    COUNT(*) as total_requests,
-                    model
-                FROM tokensGenerated
-                WHERE timestamp >= ?
-                GROUP BY model
-            """
-
-            cursor.execute(query, (start_time.timestamp(),))
-            results = cursor.fetchall()
-
-            token_metrics = {
-                "total_prompt_tokens": 0,
-                "total_generated_tokens": 0,
-                "total_requests": 0,
-                "by_model": {},
-            }
-
-            for row in results:
-                prompt_tokens, generated_tokens, requests, model = row
-                token_metrics["total_prompt_tokens"] += prompt_tokens or 0
-                token_metrics["total_generated_tokens"] += generated_tokens or 0
-                token_metrics["total_requests"] += requests or 0
-                token_metrics["by_model"][model] = {
-                    "prompt_tokens": prompt_tokens or 0,
-                    "generated_tokens": generated_tokens or 0,
-                    "requests": requests or 0,
-                }
-
-            conn.close()
-
-            # Update main metrics
-            self.metrics["tokens_prompt"] = token_metrics["total_prompt_tokens"]
-            self.metrics["tokens_generated"] = token_metrics["total_generated_tokens"]
-
-            return token_metrics
-
-        except sqlite3.Error as e:
-            logger.error(f"Error querying token database: {e}")
-            return {}
+        """Extract token usage metrics from Continue's SQLite database or JSONL files."""
+        token_metrics = {
+            "total_prompt_tokens": 0,
+            "total_generated_tokens": 0,
+            "total_requests": 0,
+            "by_model": {},
+        }
+        
+        # First try the SQLite database if it exists
+        if self.devdata_db.exists():
+            try:
+                conn = sqlite3.connect(self.devdata_db)
+                cursor = conn.cursor()
+                
+                # Check if the table exists
+                cursor.execute("""
+                    SELECT name FROM sqlite_master 
+                    WHERE type='table' AND name='tokensGenerated'
+                """)
+                
+                if cursor.fetchone():
+                    # Table exists, query it
+                    if not start_time:
+                        start_time = datetime.now() - timedelta(hours=1)
+                    
+                    query = """
+                        SELECT 
+                            SUM(promptTokens) as total_prompt_tokens,
+                            SUM(generatedTokens) as total_generated_tokens,
+                            COUNT(*) as total_requests,
+                            model
+                        FROM tokensGenerated
+                        WHERE timestamp >= ?
+                        GROUP BY model
+                    """
+                    
+                    cursor.execute(query, (start_time.timestamp(),))
+                    results = cursor.fetchall()
+                    
+                    for row in results:
+                        prompt_tokens, generated_tokens, requests, model = row
+                        token_metrics["total_prompt_tokens"] += prompt_tokens or 0
+                        token_metrics["total_generated_tokens"] += generated_tokens or 0
+                        token_metrics["total_requests"] += requests or 0
+                        token_metrics["by_model"][model] = {
+                            "prompt_tokens": prompt_tokens or 0,
+                            "generated_tokens": generated_tokens or 0,
+                            "requests": requests or 0,
+                        }
+                    
+                    conn.close()
+                    
+                    # Update main metrics
+                    self.metrics["tokens_prompt"] = token_metrics["total_prompt_tokens"]
+                    self.metrics["tokens_generated"] = token_metrics["total_generated_tokens"]
+                    
+                    return token_metrics
+                else:
+                    logger.debug("tokensGenerated table does not exist in SQLite database")
+                    conn.close()
+                    
+            except sqlite3.Error as e:
+                logger.debug(f"Could not query SQLite database: {e}")
+        
+        # Fallback to JSONL file if database doesn't work
+        tokens_file = self.dev_data_dir / "0.2.0" / "tokensGenerated.jsonl"
+        if tokens_file.exists():
+            try:
+                if not start_time:
+                    start_time = datetime.now() - timedelta(hours=1)
+                
+                with open(tokens_file, "r") as f:
+                    for line in f:
+                        if line.strip():
+                            try:
+                                entry = json.loads(line)
+                                # Check timestamp if available
+                                entry_time = entry.get("timestamp", 0)
+                                if entry_time >= start_time.timestamp():
+                                    model = entry.get("model", "unknown")
+                                    prompt_tokens = entry.get("promptTokens", 0)
+                                    generated_tokens = entry.get("generatedTokens", 0)
+                                    
+                                    token_metrics["total_prompt_tokens"] += prompt_tokens
+                                    token_metrics["total_generated_tokens"] += generated_tokens
+                                    token_metrics["total_requests"] += 1
+                                    
+                                    if model not in token_metrics["by_model"]:
+                                        token_metrics["by_model"][model] = {
+                                            "prompt_tokens": 0,
+                                            "generated_tokens": 0,
+                                            "requests": 0,
+                                        }
+                                    
+                                    token_metrics["by_model"][model]["prompt_tokens"] += prompt_tokens
+                                    token_metrics["by_model"][model]["generated_tokens"] += generated_tokens
+                                    token_metrics["by_model"][model]["requests"] += 1
+                            except json.JSONDecodeError:
+                                continue
+                
+                # Update main metrics
+                self.metrics["tokens_prompt"] = token_metrics["total_prompt_tokens"]
+                self.metrics["tokens_generated"] = token_metrics["total_generated_tokens"]
+                
+                logger.debug(f"Loaded token metrics from JSONL file: {token_metrics['total_requests']} requests")
+                return token_metrics
+                
+            except IOError as e:
+                logger.debug(f"Could not read tokensGenerated.jsonl: {e}")
+        
+        logger.debug("No token usage data available from Continue")
+        return token_metrics
 
     def parse_event_logs(self, event_name: str = "quickEdit") -> List[Dict]:
         """Parse JSONL event log files from Continue's dev_data directory."""
@@ -249,112 +300,97 @@ class ContinueSessionTracker:
 
         return 0
 
-    def extract_all_metrics(self, session_id: str = None) -> Dict:
-        """Extract all available metrics from Continue session data."""
-        # Load session
-        if not self.load_session(session_id):
-            logger.warning("Failed to load Continue session")
-            return self.metrics
+    def get_comprehensive_metrics(self) -> Dict:
+        """Get all available metrics from session and database."""
+        # Extract session metrics
+        self.extract_metrics()
 
-        # Parse messages and tool calls
-        self.parse_session_messages()
-
-        # Get token usage from database
-        self.get_token_usage_from_db()
-
-        # Calculate session duration
+        # Add session duration
         self.metrics["session_duration"] = self.calculate_session_duration()
 
-        # Parse additional event logs
+        # Add token usage from database
+        token_metrics = self.get_token_usage_from_db()
+        self.metrics["token_metrics"] = token_metrics
+
+        # Parse event logs for additional insights
         quick_edits = self.parse_event_logs("quickEdit")
-        self.metrics["quick_edits"] = len(quick_edits)
+        self.metrics["quick_edits_count"] = len(quick_edits)
 
         autocompletes = self.parse_event_logs("autocomplete")
-        self.metrics["autocompletes"] = len(autocompletes)
+        self.metrics["autocompletes_count"] = len(autocompletes)
 
         return self.metrics
 
-    def get_human_interventions(self) -> int:
-        """Estimate human interventions based on session data."""
-        # Human interventions can be estimated by:
-        # 1. Number of user messages after initial prompt
-        # 2. Quick edits that modify AI suggestions
-        # 3. Rejected autocomplete suggestions
-
-        interventions = 0
-
-        # Count user messages after the first one
-        if self.metrics["prompts_sent"] > 1:
-            interventions = self.metrics["prompts_sent"] - 1
-
-        # Add quick edits as interventions
-        interventions += self.metrics.get("quick_edits", 0)
-
-        return interventions
-
-    def export_metrics_for_benchmark(self) -> Dict:
-        """Export metrics in format compatible with BenchmarkMetrics."""
-        return {
-            "prompts_sent": self.metrics["prompts_sent"],
-            "chars_sent": self.metrics["tokens_prompt"]
-            * 4,  # Approximate chars from tokens
-            "chars_received": self.metrics["tokens_generated"] * 4,
-            "human_interventions": self.get_human_interventions(),
-            "tool_calls": len(self.metrics["tool_calls"]),
-            "session_duration": self.metrics["session_duration"],
-            "models_used": self.metrics["models_used"],
-            "continue_session_id": self.current_session_id,
-            "tokens_prompt": self.metrics["tokens_prompt"],
-            "tokens_generated": self.metrics["tokens_generated"],
-        }
-
 
 def find_active_continue_session() -> Optional[str]:
-    """Find the most recently active Continue session."""
+    """Find the most recent active Continue session."""
     tracker = ContinueSessionTracker()
     return tracker.find_latest_session()
 
 
-def extract_metrics_from_continue(session_id: str = None) -> Dict:
-    """
-    Extract benchmark metrics from Continue session data.
+def extract_metrics_from_continue(session_id: Optional[str] = None) -> Optional[Dict]:
+    """Extract metrics from Continue session data.
 
     Args:
-        session_id: Optional Continue session ID. If not provided, uses latest session.
+        session_id: Optional session ID. If not provided, uses the latest session.
 
     Returns:
-        Dictionary of metrics compatible with BenchmarkMetrics
+        Dictionary of metrics or None if no session found.
     """
     tracker = ContinueSessionTracker()
-    tracker.extract_all_metrics(session_id)
-    return tracker.export_metrics_for_benchmark()
+
+    # Find session ID if not provided
+    if not session_id:
+        session_id = tracker.find_latest_session()
+
+    if not session_id:
+        logger.info("No Continue session found")
+        return None
+
+    # Load the session
+    if not tracker.load_session(session_id):
+        logger.warning(f"Could not load Continue session: {session_id}")
+        return None
+
+    # Get comprehensive metrics
+    metrics = tracker.get_comprehensive_metrics()
+
+    # Format for benchmark compatibility
+    return {
+        "continue_session_id": session_id,
+        "prompts_sent": metrics.get("prompts_sent", 0),
+        "tokens_generated": metrics.get("tokens_generated", 0),
+        "tokens_prompt": metrics.get("tokens_prompt", 0),
+        "tool_calls": len(metrics.get("tool_calls", [])),
+        "human_interventions": 0,  # This would need manual tracking
+        "chars_sent": sum(
+            len(m.get("content", ""))
+            for m in metrics.get("messages", [])
+            if m.get("role") == "user"
+        ),
+        "chars_received": sum(
+            len(m.get("content", ""))
+            for m in metrics.get("messages", [])
+            if m.get("role") == "assistant"
+        ),
+        "session_duration": metrics.get("session_duration", 0),
+        "models_used": metrics.get("models_used", []),
+        "quick_edits_count": metrics.get("quick_edits_count", 0),
+        "autocompletes_count": metrics.get("autocompletes_count", 0),
+    }
 
 
 if __name__ == "__main__":
-    # Demo/test the tracker
-    import pprint
-
-    print("🔍 Continue Session Tracker Demo")
-    print("=" * 60)
+    # Test the tracker
+    logging.basicConfig(level=logging.DEBUG)
 
     tracker = ContinueSessionTracker()
-
-    # Find latest session
     session_id = tracker.find_latest_session()
+
     if session_id:
         print(f"Found session: {session_id}")
-
-        # Extract metrics
-        metrics = tracker.extract_all_metrics(session_id)
-
-        print("\n📊 Extracted Metrics:")
-        pprint.pprint(metrics, width=100)
-
-        print("\n📈 Benchmark Export:")
-        benchmark_metrics = tracker.export_metrics_for_benchmark()
-        pprint.pprint(benchmark_metrics, width=100)
+        tracker.load_session(session_id)
+        metrics = tracker.get_comprehensive_metrics()
+        print(json.dumps(metrics, indent=2, default=str))
     else:
-        print(
-            "No Continue sessions found. Make sure Continue is installed and has been used."
-        )
-        print(f"Looking in: {tracker.sessions_dir}")
+        print("No Continue sessions found")
