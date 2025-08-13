@@ -272,8 +272,11 @@ if __name__ == "__main__":
 3. **Run the benchmark**:
     
     ```bash
-    python benchmark/task_runner.py "Claude-4-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+    # First install dependencies with uv (10-100x faster than pip)
+    uv pip install -r requirements.txt
     
+    # Then run the benchmark
+    python benchmark/task_runner.py "Claude-4-Sonnet" "benchmark/tasks/easy/fix_typo.md"
     ```
     
 4. **Use Continue** to solve the task, noting:

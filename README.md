@@ -8,17 +8,29 @@ A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test
 
 - Python 3.8+
 - Git (for tracking code changes)
+- [uv](https://github.com/astral-sh/uv) - Fast Python package installer (10-100x faster than pip)
 - [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (optional)
 - [Ollama](https://ollama.com/) for local models (optional)
 
 ### Installation
 
 ```bash
+# Install uv (fast Python package manager)
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with Homebrew
+brew install uv
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+
 # Clone the repository
 git clone https://github.com/bdougie/vibe-check.git
 cd vibe-check
 
-# No additional dependencies required - uses Python standard library
+# Install dependencies with uv (10-100x faster than pip)
+uv pip install -r requirements.txt
 ```
 
 ## Usage
