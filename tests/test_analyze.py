@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "benchmark"))
 
 try:
-    from benchmark.analyze import analyze_results, export_to_csv, load_results
+    from benchmark.analyze import analyze_results
 except ImportError:
     # If analyze.py doesn't exist yet, create a basic version for testing
     pytest.skip("analyze.py not implemented yet", allow_module_level=True)
@@ -108,7 +108,7 @@ class TestAnalyze:
         """Test analyze_results with no result files"""
         mock_glob.return_value = []
 
-        with patch("builtins.print") as mock_print:
+        with patch("builtins.print"):
             try:
                 analyze_results()
             except Exception:

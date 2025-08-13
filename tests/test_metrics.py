@@ -122,8 +122,6 @@ class TestBenchmarkMetrics:
         time.sleep(0.1)  # Small delay to test completion time
 
         # Temporarily monkey-patch the results directory to use temp dir
-        original_complete_task = self.metrics.complete_task
-
         def mock_complete_task(success=True):
             if self.metrics.start_time:
                 self.metrics.metrics["completion_time"] = (

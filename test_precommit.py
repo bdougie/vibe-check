@@ -6,9 +6,6 @@ This file intentionally has some linting issues that ruff should catch/fix
 
 
 def poorly_formatted_function(x, y, z):  # Missing spaces (ruff will fix)
-    # Unused variable (ruff will catch)
-    unused_var = "this is unused"
-
     result = x + y + z  # Missing spaces (ruff will fix)
     return result
 
