@@ -41,6 +41,7 @@ from benchmark.metrics import BenchmarkMetrics
 from benchmark.ollama_check import OllamaChecker
 from benchmark.task_runner import validate_task_file
 from benchmark.validators import ValidationError
+from benchmark.machine_info import MachineInfoCollector
 
 
 class BatchRunner:
@@ -437,6 +438,7 @@ class BatchRunner:
             "models_tested": len(results),
             "successful": len(successful),
             "failed": len(failed),
+            "machine_info": MachineInfoCollector.collect_all(),
             "results": results,
             "rankings": {
                 "fastest": successful[0]["model"] if successful else None,
@@ -484,6 +486,10 @@ class BatchRunner:
         report_file = self.output_dir / "comparison_report.json"
         with open(report_file, "w") as f:
             json.dump(comparison, f, indent=2)
+        
+        # Save machine info separately for easy access
+        machine_info_file = self.output_dir / "machine_info.json"
+        MachineInfoCollector.save_to_file(str(machine_info_file))
 
         # Generate HTML report
         self._generate_html_report(comparison)
