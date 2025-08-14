@@ -384,7 +384,7 @@ class TestBatchRunner:
             "successful": 2,
             "failed": 0,
         }
-        
+
         # Mock machine info collection
         mock_collect_all.return_value = {
             "system": {"platform": "test"},

@@ -486,7 +486,7 @@ class BatchRunner:
         report_file = self.output_dir / "comparison_report.json"
         with open(report_file, "w") as f:
             json.dump(comparison, f, indent=2)
-        
+
         # Save machine info separately for easy access
         machine_info_file = self.output_dir / "machine_info.json"
         MachineInfoCollector.save_to_file(str(machine_info_file))
