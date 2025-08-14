@@ -6,12 +6,13 @@ Collects system details including CPU, RAM, GPU (if available), and other
 relevant hardware/software information for benchmark context.
 """
 
+from datetime import datetime
+import json
 import platform
 import subprocess
+from typing import Any, Dict, Optional
+
 import psutil
-import json
-from typing import Dict, Optional, Any
-from datetime import datetime
 
 
 class MachineInfoCollector:
@@ -37,7 +38,7 @@ class MachineInfoCollector:
                     check=True
                 )
                 cpu_info["model"] = result.stdout.strip()
-            except:
+            except Exception:
                 cpu_info["model"] = "Unknown"
         elif platform.system() == "Linux":
             try:
@@ -46,7 +47,7 @@ class MachineInfoCollector:
                         if "model name" in line:
                             cpu_info["model"] = line.split(":")[1].strip()
                             break
-            except:
+            except Exception:
                 cpu_info["model"] = "Unknown"
         elif platform.system() == "Windows":
             try:
@@ -59,7 +60,7 @@ class MachineInfoCollector:
                 lines = result.stdout.strip().split("\n")
                 if len(lines) > 1:
                     cpu_info["model"] = lines[1].strip()
-            except:
+            except Exception:
                 cpu_info["model"] = "Unknown"
         else:
             cpu_info["model"] = platform.processor() or "Unknown"
@@ -102,7 +103,7 @@ class MachineInfoCollector:
                     "memory_mb": parts[1].strip() if len(parts) > 1 else "Unknown",
                     "driver": parts[2].strip() if len(parts) > 2 else "Unknown",
                 }
-        except:
+        except Exception:
             pass
         
         # Try to detect Apple Silicon GPU
@@ -125,7 +126,7 @@ class MachineInfoCollector:
                         elif "VRAM" in line or "Memory" in line:
                             if "apple_silicon" in gpu_info:
                                 gpu_info["apple_silicon"]["memory"] = line.split(":")[1].strip()
-            except:
+            except Exception:
                 pass
         
         return gpu_info if gpu_info else None
@@ -187,7 +188,7 @@ class MachineInfoCollector:
                 "models_count": len(models),
                 "models": models[:10]  # Limit to first 10 models
             }
-        except:
+        except Exception:
             return None
 
     @classmethod

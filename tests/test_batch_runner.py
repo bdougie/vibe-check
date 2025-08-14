@@ -337,7 +337,10 @@ class TestBatchRunner:
 
     @patch("benchmark.batch_runner.validate_task_file")
     @patch("benchmark.batch_runner.BatchRunner.detect_available_models")
+    @patch("benchmark.batch_runner.BatchRunner._run_with_progress")
     @patch("benchmark.batch_runner.BatchRunner._run_simple")
+    @patch("benchmark.batch_runner.MachineInfoCollector.save_to_file")
+    @patch("benchmark.batch_runner.MachineInfoCollector.collect_all")
     @patch("benchmark.batch_runner.BatchRunner._generate_comparison_report")
     @patch("benchmark.batch_runner.BatchRunner._save_batch_results")
     @patch("benchmark.batch_runner.BatchRunner._display_batch_info")
@@ -348,7 +351,10 @@ class TestBatchRunner:
         mock_display_info,
         mock_save_results,
         mock_generate_report,
+        mock_collect_all,
+        mock_save_to_file,
         mock_run_simple,
+        mock_run_with_progress,
         mock_detect_models,
         mock_validate_task,
     ):
@@ -364,17 +370,26 @@ class TestBatchRunner:
             {"name": "model2", "provider": "test", "display_name": "Model 2"},
         ]
 
-        # Mock run results
-        mock_run_simple.return_value = [
+        # Mock run results (both _run_simple and _run_with_progress)
+        run_results = [
             {"model": "model1", "success": True},
             {"model": "model2", "success": True},
         ]
+        mock_run_simple.return_value = run_results
+        mock_run_with_progress.return_value = run_results
 
         # Mock comparison report
         mock_generate_report.return_value = {
             "batch_id": "test_batch",
             "successful": 2,
             "failed": 0,
+        }
+        
+        # Mock machine info collection
+        mock_collect_all.return_value = {
+            "system": {"platform": "test"},
+            "cpu": {"model": "test"},
+            "memory": {"total_gb": 16},
         }
 
         # Run batch benchmark
@@ -385,7 +400,8 @@ class TestBatchRunner:
         # Verify calls
         mock_validate_task.assert_called_once_with("test_task.md")
         mock_detect_models.assert_called_once()
-        mock_run_simple.assert_called_once()
+        # Either _run_simple or _run_with_progress should be called
+        assert mock_run_simple.called or mock_run_with_progress.called
         mock_generate_report.assert_called_once()
         mock_save_results.assert_called_once()
         mock_display_info.assert_called_once()

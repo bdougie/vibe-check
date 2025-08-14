@@ -37,11 +37,11 @@ import yaml
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from benchmark.machine_info import MachineInfoCollector
 from benchmark.metrics import BenchmarkMetrics
 from benchmark.ollama_check import OllamaChecker
 from benchmark.task_runner import validate_task_file
 from benchmark.validators import ValidationError
-from benchmark.machine_info import MachineInfoCollector
 
 
 class BatchRunner:
