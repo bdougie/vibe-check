@@ -10,24 +10,27 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
 - [ ] **Memory**: At least 8GB RAM (16GB recommended for larger models)
 - [ ] **Storage**: 10GB free disk space for models
 
-## Step 1: Python Setup
+## Step 1: Install uv
 
-### Install Python (3.9 or higher)
+### Install uv Package Manager
 
-- [ ] Check if Python is installed:
+uv handles Python installation and package management automatically.
+
+- [ ] Install uv:
   ```bash
-  python3 --version
+  # macOS/Linux
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  
+  # Or with Homebrew (macOS)
+  brew install uv
+  
+  # Windows
+  powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
   ```
-  You should see `Python 3.9.x` or higher
 
-- [ ] If not installed, get Python:
-  - **macOS**: `brew install python@3.11`
-  - **Ubuntu/Debian**: `sudo apt install python3.11 python3-pip`
-  - **Windows**: Download from [python.org](https://www.python.org/downloads/)
-
-- [ ] Verify pip is installed:
+- [ ] Verify uv is installed:
   ```bash
-  python3 -m pip --version
+  uv --version
   ```
 
 ## Step 2: Project Setup
@@ -40,23 +43,16 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
   cd vibe-check
   ```
 
-- [ ] Install uv (recommended) or use pip:
+- [ ] Set up environment and install dependencies:
   ```bash
-  # Option A: Using uv (faster, recommended)
-  curl -LsSf https://astral.sh/uv/install.sh | sh
+  # Create virtual environment and install dependencies
   uv venv
-  source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-  uv pip install -r requirements.txt
-  
-  # Option B: Using pip
-  python3 -m venv venv
-  source venv/bin/activate  # On Windows: venv\Scripts\activate
-  pip install -r requirements.txt
+  uv pip sync requirements.txt
   ```
 
 - [ ] Verify installation:
   ```bash
-  python3 -c "import pandas, yaml, pytest; print('✅ Dependencies installed')"
+  uv run python -c "import pandas, yaml, pytest; print('✅ Dependencies installed')"
   ```
 
 ## Step 3: Ollama Setup
@@ -123,7 +119,7 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
 
 - [ ] Generate Continue configuration:
   ```bash
-  python benchmark/continue_config_generator.py
+  uv run benchmark/continue_config_generator.py
   ```
   - Answer `n` for OpenAI and Anthropic keys (unless you have them)
   - The script will auto-detect your Ollama models
@@ -141,7 +137,7 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
 
 - [ ] Run the smoke test:
   ```bash
-  python run_smoke_test.py
+  uv run run_smoke_test.py
   ```
   
   This will:
@@ -152,7 +148,7 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
 
 - [ ] Alternative: Run a specific benchmark:
   ```bash
-  python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/fix_typo.md"
+  uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/fix_typo.md"
   ```
 
 ## Step 7: View Your Results
@@ -161,7 +157,7 @@ Welcome! This step-by-step checklist will get you from zero to running your firs
 
 - [ ] View results summary:
   ```bash
-  python benchmark/analyze.py
+  uv run benchmark/analyze.py
   ```
 
 - [ ] Check the results file:
@@ -185,7 +181,7 @@ You've successfully completed your first benchmark when:
 - [ ] Continue extension is working in VS Code
 - [ ] Smoke test completed successfully
 - [ ] Results file was generated in `benchmark/results/`
-- [ ] You can see metrics with `python benchmark/analyze.py`
+- [ ] You can see metrics with `uv run benchmark/analyze.py`
 
 ## 📊 Next Steps
 
@@ -194,10 +190,10 @@ You've successfully completed your first benchmark when:
 1. **Try different difficulty levels:**
    ```bash
    # Easy task
-   python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/add_gitignore_entry.md"
+   uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/add_gitignore_entry.md"
    
    # Medium task
-   python benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/medium/add_validation.md"
+   uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/medium/add_validation.md"
    ```
 
 2. **Compare different models:**
@@ -206,16 +202,16 @@ You've successfully completed your first benchmark when:
    ollama pull codestral:latest
    
    # Run same task with different model
-   python benchmark/task_runner.py "ollama/codestral" "benchmark/tasks/easy/fix_typo.md"
+   uv run benchmark/task_runner.py "ollama/codestral" "benchmark/tasks/easy/fix_typo.md"
    ```
 
 3. **Analyze and compare results:**
    ```bash
    # View all results
-   python benchmark/analyze.py
+   uv run benchmark/analyze.py
    
    # Export to CSV for analysis
-   python benchmark/analyze.py --export
+   uv run benchmark/analyze.py --export
    ```
 
 ## 🐛 Troubleshooting
@@ -265,7 +261,7 @@ ollama pull qwen2.5-coder:7b
 
 2. Regenerate if needed:
    ```bash
-   python benchmark/continue_config_generator.py
+   uv run benchmark/continue_config_generator.py
    ```
 
 3. Restart VS Code completely
@@ -274,13 +270,13 @@ ollama pull qwen2.5-coder:7b
 <details>
 <summary>❌ Import errors when running scripts</summary>
 
-Make sure you're in the virtual environment:
+Make sure dependencies are installed:
 ```bash
-# Activate virtual environment
-source .venv/bin/activate  # or venv/bin/activate
+# Reinstall dependencies with uv
+uv pip sync requirements.txt
 
-# Reinstall dependencies
-uv pip install -r requirements.txt
+# Run scripts with uv run to ensure correct environment
+uv run benchmark/task_runner.py
 ```
 </details>
 
@@ -304,7 +300,7 @@ uv pip install -r requirements.txt
 
 - **GitHub Issues**: [Report problems](https://github.com/bdougie/vibe-check/issues)
 - **Documentation**: Check [docs/](docs/) folder for detailed guides
-- **Quick Check**: Run `python benchmark/ollama_check.py` to diagnose Ollama issues
+- **Quick Check**: Run `uv run benchmark/ollama_check.py` to diagnose Ollama issues
 
 ---
 

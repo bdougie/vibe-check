@@ -180,10 +180,10 @@ def main():
     print("\nNext steps:")
     print("  1. If successful, the system is ready for full benchmarks")
     print("  2. Try running a real benchmark with your preferred model")
-    print("  3. Use: python benchmark/task_runner.py <model> <task_file>")
+    print("  3. Use: uv run benchmark/task_runner.py <model> <task_file>")
     print("\nExample:")
     print(
-        "  python benchmark/task_runner.py 'Claude-3-Sonnet' 'benchmark/tasks/easy/fix_typo.md'"
+        "  uv run benchmark/task_runner.py 'Claude-3-Sonnet' 'benchmark/tasks/easy/fix_typo.md'"
     )
     print("\n" + "🔥" * 30 + "\n")
 

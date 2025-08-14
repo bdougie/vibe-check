@@ -10,16 +10,16 @@ Run the model verification script to see what models you have and what you need:
 
 ```bash
 # Full verification report
-uv run python -m benchmark.model_verifier
+uv run -m benchmark.model_verifier
 
 # Get download commands for missing models
-uv run python -m benchmark.model_verifier --download
+uv run -m benchmark.model_verifier --download
 
 # Get model suggestions based on your system
-uv run python -m benchmark.model_verifier --suggest
+uv run -m benchmark.model_verifier --suggest
 
 # JSON output for automation
-uv run python -m benchmark.model_verifier --json
+uv run -m benchmark.model_verifier --json
 ```
 
 ### 2. Download Essential Models
@@ -95,7 +95,7 @@ The model verifier automatically checks your system and recommends appropriate m
 
 ```bash
 # See what your system can handle
-uv run python -m benchmark.model_verifier --suggest
+uv run -m benchmark.model_verifier --suggest
 ```
 
 Example output for different systems:
@@ -230,10 +230,10 @@ If your system can't run local models, consider cloud alternatives:
 ### Using Cloud Models with Benchmarks
 ```bash
 # Use OpenAI models
-python -m benchmark.task_runner "gpt-4" "benchmark/tasks/easy/fix_typo.md"
+uv run -m benchmark.task_runner "gpt-4" "benchmark/tasks/easy/fix_typo.md"
 
 # Use Anthropic models
-python -m benchmark.task_runner "claude-3-opus" "benchmark/tasks/easy/fix_typo.md"
+uv run -m benchmark.task_runner "claude-3-opus" "benchmark/tasks/easy/fix_typo.md"
 ```
 
 ### Hybrid Approach
@@ -241,10 +241,10 @@ Use small local models for testing, cloud models for production:
 
 ```bash
 # Test locally with small model
-python -m benchmark.task_runner "ollama/llama2" "task.md"
+uv run -m benchmark.task_runner "ollama/llama2" "task.md"
 
 # Run same test with cloud model
-python -m benchmark.task_runner "gpt-4" "task.md"
+uv run -m benchmark.task_runner "gpt-4" "task.md"
 ```
 
 ## Performance Tips
@@ -313,7 +313,7 @@ echo "✅ All required models are installed"
 # .github/workflows/benchmark.yml
 - name: Check Models
   run: |
-    python -m benchmark.model_verifier --json > model_check.json
+    uv run -m benchmark.model_verifier --json > model_check.json
     if ! jq -e '.ready' model_check.json; then
       echo "Models not ready"
       exit 1
@@ -322,10 +322,10 @@ echo "✅ All required models are installed"
 
 ## Next Steps
 
-1. **Run the verifier**: `uv run python -m benchmark.model_verifier`
+1. **Run the verifier**: `uv run -m benchmark.model_verifier`
 2. **Download essential models**: Follow the download commands provided
 3. **Test a model**: `ollama run codellama "Write a Python hello world"`
-4. **Start benchmarking**: `uv run python -m benchmark.task_runner "ollama/codellama" "benchmark/tasks/easy/fix_typo.md"`
+4. **Start benchmarking**: `uv run -m benchmark.task_runner "ollama/codellama" "benchmark/tasks/easy/fix_typo.md"`
 
 ## Related Documentation
 

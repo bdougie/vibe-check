@@ -6,7 +6,7 @@ This project uses pre-commit hooks to ensure consistent code quality before comm
 
 ```bash
 # Install dependencies
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 
 # Install pre-commit hooks
 make pre-commit-install

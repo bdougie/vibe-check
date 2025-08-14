@@ -414,7 +414,7 @@ if __name__ == "__main__":
         elif sys.argv[1] == "--visualize" and PANDAS_AVAILABLE:
             visualize_results()
         elif sys.argv[1] == "--help":
-            print("Usage: python benchmark/analyze.py [OPTIONS]")
+            print("Usage: uv run benchmark/analyze.py [OPTIONS]")
             print("\nOptions:")
             print("  --export     Export results to CSV")
             print(

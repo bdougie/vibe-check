@@ -32,9 +32,9 @@ For comprehensive documentation, see the [docs/](docs/) directory:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.8+ (uv will handle Python installation if needed)
+- [uv](https://github.com/astral-sh/uv) - Fast Python package and environment manager
 - Git (for tracking code changes)
-- [uv](https://github.com/astral-sh/uv) - Fast Python package installer (10-100x faster than pip)
 - [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (optional)
 - [Ollama](https://ollama.com/) for local models (optional)
 
