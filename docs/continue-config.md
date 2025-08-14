@@ -17,7 +17,7 @@ Continue is an AI-powered coding assistant that integrates with VS Code. The con
 ### Running the Generator
 
 ```bash
-python benchmark/continue_config_generator.py
+uv run benchmark/continue_config_generator.py
 ```
 
 The generator will:
@@ -226,7 +226,7 @@ If API keys are invalid:
 The configuration generator requires:
 
 - Python 3.8+
-- PyYAML (`pip install pyyaml`)
+- PyYAML (`uv pip install pyyaml`)
 - Ollama (optional, for local models)
 
 ## Integration with Benchmarks
@@ -255,7 +255,7 @@ The Continue configuration integrates with the vibe-check benchmark framework:
 
 2. **Run the configuration generator**:
    ```bash
-   python benchmark/continue_config_generator.py
+   uv run benchmark/continue_config_generator.py
    ```
 
 3. **Add API keys** (if using commercial models):

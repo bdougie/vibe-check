@@ -18,7 +18,7 @@ When you use Continue to complete benchmark tasks, the framework automatically:
 When you run a benchmark, the framework checks for Continue session data:
 
 ```bash
-python benchmark/task_runner.py "model-name" "task.md"
+uv run benchmark/task_runner.py "model-name" "task.md"
 
 # Output:
 🔍 Checking for Continue session data...
@@ -190,7 +190,7 @@ The tracker captures detailed tool usage:
     {
       "name": "runCommand",
       "arguments": {
-        "command": "python test.py"
+        "command": "uv run test.py"
       },
       "id": "call_124"
     }

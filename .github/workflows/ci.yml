@@ -51,11 +51,11 @@ jobs:
         uv pip install --system pytest pytest-cov coverage || true
         
         # Run tests with coverage (lower threshold initially)
-        pytest --cov=benchmark --cov=. \
+        uv run pytest --cov=benchmark --cov=. \
                --cov-report=html:htmlcov \
                --cov-report=xml:coverage.xml \
                --cov-report=term-missing \
-               -v || pytest -v || python3 run_tests.py
+               -v || uv run pytest -v || uv run run_tests.py
                
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
@@ -76,17 +76,17 @@ jobs:
           
     - name: Check test coverage threshold
       run: |
-        coverage report --fail-under=30 || true
+        uv run coverage report --fail-under=30 || true
         
     - name: Run basic smoke tests
       run: |
         # Test that core modules can be imported
-        python -c "import benchmark.metrics; print('✅ metrics.py imports successfully')"
-        python -c "import benchmark_task; print('✅ benchmark_task.py imports successfully')"
-        python -c "import benchmark.task_runner; print('✅ task_runner.py imports successfully')"
+        uv run python -c "import benchmark.metrics; print('✅ metrics.py imports successfully')"
+        uv run python -c "import benchmark_task; print('✅ benchmark_task.py imports successfully')"
+        uv run python -c "import benchmark.task_runner; print('✅ task_runner.py imports successfully')"
         
         # Test that task files exist
-        python -c "
+        uv run python -c "
         from pathlib import Path
         tasks_dir = Path('benchmark/tasks')
         assert tasks_dir.exists(), 'Tasks directory missing'
@@ -99,7 +99,7 @@ jobs:
         "
         
         # Test basic functionality
-        python -c "
+        uv run python -c "
         from benchmark.metrics import BenchmarkMetrics
         metrics = BenchmarkMetrics('ci_test_model', 'ci_test_task')
         metrics.start_task()
@@ -129,19 +129,19 @@ jobs:
         
     - name: Run Ruff linting
       run: |
-        ruff check . --output-format=github
+        uv run ruff check . --output-format=github
         
     - name: Run Ruff formatting check
       run: |
-        ruff format --check --diff .
+        uv run ruff format --check --diff .
         
     - name: Run MyPy type checking
       run: |
         # Install types for pandas if available
         uv pip install --system types-requests types-setuptools || true
         # Run mypy on core modules (may have some issues to fix)
-        mypy benchmark/ --ignore-missing-imports || true
-        mypy benchmark_task.py --ignore-missing-imports || true
+        uv run mypy benchmark/ --ignore-missing-imports || true
+        uv run mypy benchmark_task.py --ignore-missing-imports || true
 
   pre-commit:
     runs-on: ubuntu-latest
@@ -164,7 +164,7 @@ jobs:
         
     - name: Run pre-commit hooks
       run: |
-        pre-commit run --all-files --show-diff-on-failure || true
+        uv run pre-commit run --all-files --show-diff-on-failure || true
 
   security:
     runs-on: ubuntu-latest
@@ -187,12 +187,12 @@ jobs:
         
     - name: Run Bandit security linting
       run: |
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . || true
+        uv run bandit -r . -f json -o bandit-report.json || true
+        uv run bandit -r . || true
         
     - name: Run Safety dependency security check
       run: |
-        safety check || true
+        uv run safety check || true
         
     - name: Upload security reports
       uses: actions/upload-artifact@v4
@@ -220,7 +220,7 @@ jobs:
         test -s docs/setup.md
         
         # Validate that all task files are properly formatted
-        python -c "
+        uv run python -c "
         from pathlib import Path
         import re
         

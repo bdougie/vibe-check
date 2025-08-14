@@ -42,13 +42,13 @@ ollama pull llama3.1:8b
 
 ```bash
 # 1. Check available tasks
-uv run python -m benchmark.task_runner
+uv run -m benchmark.task_runner
 
 # 2. Run a simple benchmark
-uv run python -m benchmark.task_runner "YourModelName" "benchmark/tasks/easy/fix_calculator_typos.md"
+uv run -m benchmark.task_runner "YourModelName" "benchmark/tasks/easy/fix_calculator_typos.md"
 
 # 3. View results
-uv run python -m benchmark.analyze
+uv run -m benchmark.analyze
 ```
 
 ## Understanding the Framework
@@ -87,7 +87,7 @@ vibe-check/
 
 List all available tasks:
 ```bash
-uv run python -m benchmark.task_runner
+uv run -m benchmark.task_runner
 ```
 
 Tasks are categorized by difficulty:
@@ -110,7 +110,7 @@ The framework supports any AI coding tool:
 Start a benchmark session:
 ```bash
 # Example with Claude
-uv run python -m benchmark.task_runner "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_calculator_typos.md"
+uv run -m benchmark.task_runner "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_calculator_typos.md"
 ```
 
 The runner will:
@@ -174,17 +174,17 @@ The `sample_project/` directory contains a Python project with intentional issue
 After each benchmark, reset to original state:
 ```bash
 # Reset to original (buggy) state
-uv run python reset_sample_project.py
+uv run reset_sample_project.py
 
 # Create a backup
-uv run python reset_sample_project.py --backup
+uv run reset_sample_project.py --backup
 ```
 
 ### Example Workflow
 
 ```bash
 # 1. Start with the typo fix task
-uv run python -m benchmark.task_runner "YourModel" "benchmark/tasks/easy/fix_calculator_typos.md"
+uv run -m benchmark.task_runner "YourModel" "benchmark/tasks/easy/fix_calculator_typos.md"
 
 # 2. Open sample_project/src/calculator.py in your AI tool
 
@@ -195,7 +195,7 @@ uv run python -m benchmark.task_runner "YourModel" "benchmark/tasks/easy/fix_cal
 # 5. Complete the benchmark and record metrics
 
 # 6. Reset for next test
-uv run python reset_sample_project.py
+uv run reset_sample_project.py
 ```
 
 ## Interpreting Results
@@ -205,13 +205,13 @@ uv run python reset_sample_project.py
 Analyze all benchmark results:
 ```bash
 # Basic analysis
-uv run python -m benchmark.analyze
+uv run -m benchmark.analyze
 
 # Export to CSV
-uv run python -m benchmark.analyze --export
+uv run -m benchmark.analyze --export
 
 # With visualization (requires pandas)
-uv run python -m benchmark.analyze --visualize
+uv run -m benchmark.analyze --visualize
 ```
 
 ### Key Metrics
@@ -284,8 +284,8 @@ Run multiple benchmarks sequentially:
 ```bash
 # Create a batch script
 for task in benchmark/tasks/easy/*.md; do
-    uv run python -m benchmark.task_runner "YourModel" "$task"
-    uv run python reset_sample_project.py
+    uv run -m benchmark.task_runner "YourModel" "$task"
+    uv run reset_sample_project.py
 done
 ```
 
@@ -294,13 +294,13 @@ done
 Before benchmarking, verify model availability:
 ```bash
 # Check all models
-uv run python -m benchmark.model_verifier
+uv run -m benchmark.model_verifier
 
 # Get missing model download commands
-uv run python -m benchmark.model_verifier --download
+uv run -m benchmark.model_verifier --download
 
 # Check Ollama specifically
-uv run python -m benchmark.ollama_check
+uv run -m benchmark.ollama_check
 ```
 
 ## Best Practices
@@ -333,20 +333,20 @@ uv run python -m benchmark.ollama_check
 **Problem**: "Module not found" errors
 ```bash
 # Solution: Ensure you're using uv to run commands
-uv run python -m benchmark.task_runner
+uv run -m benchmark.task_runner
 ```
 
 **Problem**: Sample project changes persist
 ```bash
 # Solution: Reset the project
-uv run python reset_sample_project.py
+uv run reset_sample_project.py
 ```
 
 **Problem**: Ollama models not working
 ```bash
 # Solution: Check Ollama is running
 ollama list  # Should show available models
-uv run python -m benchmark.ollama_check
+uv run -m benchmark.ollama_check
 ```
 
 **Problem**: Results not saving

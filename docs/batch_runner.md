@@ -22,22 +22,22 @@ uv pip install rich
 
 ### Run on all available models
 ```bash
-uv run python benchmark/batch_runner.py --task benchmark/tasks/easy/fix_typo.md
+uv run benchmark/batch_runner.py --task benchmark/tasks/easy/fix_typo.md
 ```
 
 ### Run on specific models
 ```bash
-uv run python benchmark/batch_runner.py --task benchmark/tasks/easy/fix_typo.md --models "llama3,mistral,codellama"
+uv run benchmark/batch_runner.py --task benchmark/tasks/easy/fix_typo.md --models "llama3,mistral,codellama"
 ```
 
 ### Run with custom timeout
 ```bash
-uv run python benchmark/batch_runner.py --task benchmark/tasks/medium/add_validation.md --timeout 3600
+uv run benchmark/batch_runner.py --task benchmark/tasks/medium/add_validation.md --timeout 3600
 ```
 
 ### Resume an interrupted batch
 ```bash
-uv run python benchmark/batch_runner.py --task benchmark/tasks/hard/refactor_metrics.md --resume batch_20241213_143022
+uv run benchmark/batch_runner.py --task benchmark/tasks/hard/refactor_metrics.md --resume batch_20241213_143022
 ```
 
 ## Configuration
@@ -125,19 +125,19 @@ The batch runner simulates benchmark runs in the current implementation. In prod
 ### Quick Test
 ```bash
 # Run smoke test on fast models
-uv run python benchmark/batch_runner.py --task benchmark/tasks/smoke/add_comment.md --models "mistral,llama3" --timeout 60
+uv run benchmark/batch_runner.py --task benchmark/tasks/smoke/add_comment.md --models "mistral,llama3" --timeout 60
 ```
 
 ### Full Benchmark
 ```bash
 # Run comprehensive benchmark on all models
-uv run python benchmark/batch_runner.py --task benchmark/tasks/medium/add_validation.md
+uv run benchmark/batch_runner.py --task benchmark/tasks/medium/add_validation.md
 ```
 
 ### Production Run
 ```bash
 # Run with specific models and extended timeout
-uv run python benchmark/batch_runner.py \
+uv run benchmark/batch_runner.py \
   --task benchmark/tasks/hard/refactor_metrics.md \
   --models "gpt-4,claude-3-opus,ollama/mixtral" \
   --timeout 7200 \

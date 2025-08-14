@@ -20,9 +20,9 @@ For comprehensive documentation, see the [docs/](docs/) directory:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.8+ (uv will handle Python installation if needed)
+- [uv](https://github.com/astral-sh/uv) - Fast Python package and environment manager
 - Git (for tracking code changes)
-- [uv](https://github.com/astral-sh/uv) - Fast Python package installer (10-100x faster than pip)
 - [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (optional)
 - [Ollama](https://ollama.com/) for local models (optional)
 
@@ -43,8 +43,9 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 git clone https://github.com/bdougie/vibe-check.git
 cd vibe-check
 
-# Install dependencies with uv (10-100x faster than pip)
-uv pip install -r requirements.txt
+# Create virtual environment and install dependencies
+uv venv
+uv pip sync requirements.txt
 ```
 
 ## Usage
@@ -55,10 +56,10 @@ Before running full benchmarks, verify your setup with a quick smoke test:
 
 ```bash
 # Run the automated smoke test
-python run_smoke_test.py
+uv run run_smoke_test.py
 
 # Or run manually with any model
-python benchmark/task_runner.py "test_model" "benchmark/tasks/smoke/add_comment.md" --smoke-test --skip-ollama-check
+uv run benchmark/task_runner.py "test_model" "benchmark/tasks/smoke/add_comment.md" --smoke-test --skip-ollama-check
 ```
 
 The smoke test:
@@ -70,35 +71,32 @@ The smoke test:
 ### 1. Run a Benchmark Task
 
 ```bash
-# Using uv (recommended - handles dependencies automatically)
-uv run python -m benchmark.task_runner "ModelName" "benchmark/tasks/easy/fix_typo.md"
+# Run benchmark with uv (handles dependencies automatically)
+uv run benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
 
-# Or directly with Python
-python benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
+# Or as a module
+uv run -m benchmark.task_runner "ModelName" "benchmark/tasks/easy/fix_typo.md"
 ```
 
 Example with specific models:
 ```bash
-# Commercial models (using uv)
-uv run python -m benchmark.task_runner "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
-uv run python -m benchmark.task_runner "GPT-4o" "benchmark/tasks/medium/add_validation.md"
+# Commercial models
+uv run benchmark/task_runner.py "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+uv run benchmark/task_runner.py "GPT-4o" "benchmark/tasks/medium/add_validation.md"
 
 # Local models via Ollama (automatic setup verification)
-uv run python -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/add_gitignore_entry.md"
-uv run python -m benchmark.task_runner "ollama/codellama" "benchmark/tasks/medium/add_validation.md"
+uv run benchmark/task_runner.py "ollama/llama2" "benchmark/tasks/easy/add_gitignore_entry.md"
+uv run benchmark/task_runner.py "ollama/codellama" "benchmark/tasks/medium/add_validation.md"
 
 # Skip Ollama checks if you're sure everything is set up
-uv run python -m benchmark.task_runner "ollama/mistral" "benchmark/tasks/easy/fix_typo.md" --skip-ollama-check
+uv run benchmark/task_runner.py "ollama/mistral" "benchmark/tasks/easy/fix_typo.md" --skip-ollama-check
 ```
 
 ### 2. View Available Tasks
 
 ```bash
-# Using uv
-uv run python -m benchmark.task_runner
-
-# Or directly
-python benchmark/task_runner.py
+# List all available tasks
+uv run benchmark/task_runner.py
 ```
 
 This will list all available benchmark tasks organized by difficulty:
@@ -112,16 +110,16 @@ Check which AI models you have and what you need for benchmarking:
 
 ```bash
 # Run comprehensive model verification
-uv run python -m benchmark.model_verifier
+uv run benchmark/model_verifier.py
 
 # Get download commands for missing models  
-uv run python -m benchmark.model_verifier --download
+uv run benchmark/model_verifier.py --download
 
 # Get model suggestions based on your system specs
-uv run python -m benchmark.model_verifier --suggest
+uv run benchmark/model_verifier.py --suggest
 
 # JSON output for automation
-uv run python -m benchmark.model_verifier --json
+uv run benchmark/model_verifier.py --json
 ```
 
 The model verifier will:
@@ -135,43 +133,40 @@ For Ollama-specific checks:
 
 ```bash
 # Check Ollama installation and service
-uv run python -m benchmark.ollama_check
+uv run benchmark/ollama_check.py
 
 # Check specific model availability
-uv run python -m benchmark.ollama_check --model llama2
+uv run benchmark/ollama_check.py --model llama2
 
 # Auto-pull missing models
-uv run python -m benchmark.ollama_check --model codellama --pull
+uv run benchmark/ollama_check.py --model codellama --pull
 ```
 
 ### 4. Analyze Results
 
 View aggregated benchmark results:
 ```bash
-# Using uv (recommended)
-uv run python -m benchmark.analyze
-
-# Or directly with Python
-python benchmark/analyze.py
+# View aggregated benchmark results
+uv run benchmark/analyze.py
 ```
 
 Export results to CSV for further analysis:
 ```bash
-# Using uv
-uv run python -m benchmark.analyze --export
+# Export results to CSV
+uv run benchmark/analyze.py --export
 
 # With pandas visualization support
-uv run python -m benchmark.analyze --visualize
+uv run benchmark/analyze.py --visualize
 
 # Get help on available options
-uv run python -m benchmark.analyze --help
+uv run benchmark/analyze.py --help
 ```
 
 ### 5. Continue Integration (Optional)
 
 If using Continue VS Code extension, start benchmarks with:
 ```bash
-python benchmark_task.py --start
+uv run benchmark_task.py --start
 ```
 
 ## Benchmark Workflow

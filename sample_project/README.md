@@ -38,7 +38,7 @@ This project is used by the benchmark tasks in `../benchmark/tasks/`.
 
 To reset the project to its original state (with all issues intact):
 ```bash
-python reset_sample_project.py
+uv run reset_sample_project.py
 ```
 
 ## Warning

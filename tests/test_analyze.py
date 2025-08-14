@@ -664,7 +664,7 @@ class TestMainFunction:
         """Test running script with --help flag"""
         # Simulate the help behavior
         if "--help" in sys.argv:
-            print("Usage: python benchmark/analyze.py [OPTIONS]")
+            print("Usage: uv run benchmark/analyze.py [OPTIONS]")
             print("\nOptions:")
             print("  --export     Export results to CSV")
             print(

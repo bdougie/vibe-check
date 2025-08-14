@@ -281,11 +281,11 @@ if __name__ == "__main__":
         sys.exit(0 if results["ready"] else 1)
 
     if len(sys.argv) == 1:
-        print("Usage: python benchmark/task_runner.py <model_name> <task_file>")
-        print("       python benchmark/task_runner.py --check-ollama")
+        print("Usage: uv run benchmark/task_runner.py <model_name> <task_file>")
+        print("       uv run benchmark/task_runner.py --check-ollama")
         print("\nExample:")
         print(
-            "  python benchmark/task_runner.py 'Claude-4-Sonnet' 'benchmark/tasks/easy/fix_typo.md'"
+            "  uv run benchmark/task_runner.py 'Claude-4-Sonnet' 'benchmark/tasks/easy/fix_typo.md'"
         )
         print("\nSpecial commands:")
         print("  --check-ollama    Run Ollama installation and health check")
@@ -299,8 +299,8 @@ if __name__ == "__main__":
 
     if len(sys.argv) != 3:
         print("Error: Incorrect number of arguments")
-        print("Usage: python benchmark/task_runner.py <model_name> <task_file>")
-        print("       python benchmark/task_runner.py --check-ollama")
+        print("Usage: uv run benchmark/task_runner.py <model_name> <task_file>")
+        print("       uv run benchmark/task_runner.py --check-ollama")
         sys.exit(1)
 
     # Parse optional flags

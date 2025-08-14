@@ -377,7 +377,7 @@ def main():
         if not args.model or not args.task:
             print("Error: --model and --task required to start benchmark")
             print(
-                "Example: python benchmark_task.py --start --model 'Claude-3.5' --task 'benchmark/tasks/easy/fix_typo.md'"
+                "Example: uv run benchmark_task.py --start --model 'Claude-3.5' --task 'benchmark/tasks/easy/fix_typo.md'"
             )
             sys.exit(1)
         session.start_task(args.model, args.task)
@@ -386,12 +386,12 @@ def main():
     else:
         print("vibe-check: AI Coding Agent Benchmark Framework")
         print("\nUsage:")
-        print("  python benchmark_task.py --tasks           # List available tasks")
+        print("  uv run benchmark_task.py --tasks           # List available tasks")
         print(
-            "  python benchmark_task.py --start --model <name> --task <file>  # Start benchmark"
+            "  uv run benchmark_task.py --start --model <name> --task <file>  # Start benchmark"
         )
-        print("  python benchmark_task.py --complete        # Complete current task")
-        print("  python benchmark_task.py --list            # List sessions")
+        print("  uv run benchmark_task.py --complete        # Complete current task")
+        print("  uv run benchmark_task.py --list            # List sessions")
 
 
 if __name__ == "__main__":

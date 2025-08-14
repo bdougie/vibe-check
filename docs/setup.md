@@ -13,7 +13,7 @@ Before full setup, run a quick smoke test to verify the benchmark system works:
 
 ```bash
 # Run automated smoke test (no model needed)
-python run_smoke_test.py
+uv run run_smoke_test.py
 ```
 
 This validates that the core benchmark infrastructure is working correctly.
@@ -267,7 +267,7 @@ def run_benchmark_task(model_name, task_file):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python task_runner.py <model_name> <task_file>")
+        print("Usage: uv run task_runner.py <model_name> <task_file>")
         sys.exit(1)
 
     run_benchmark_task(sys.argv[1], sys.argv[2])
@@ -287,7 +287,7 @@ if __name__ == "__main__":
     uv pip install -r requirements.txt
     
     # Then run the benchmark
-    python benchmark/task_runner.py "Claude-4-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+    uv run benchmark/task_runner.py "Claude-4-Sonnet" "benchmark/tasks/easy/fix_typo.md"
     ```
     
 4. **Use Continue** to solve the task, noting:

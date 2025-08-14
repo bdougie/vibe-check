@@ -62,13 +62,13 @@ The `uv` package manager is recommended for running benchmarks as it handles dep
 
 ```bash
 # Run Ollama health check
-uv run python -m benchmark.ollama_check
+uv run -m benchmark.ollama_check
 
 # Run task runner with Ollama model
-uv run python -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
+uv run -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
 
 # Run analysis
-uv run python -m benchmark.analyze
+uv run -m benchmark.analyze
 
 # Run tests
 uv run pytest tests/test_ollama_check.py
@@ -82,19 +82,19 @@ The framework includes a comprehensive Ollama health check system that runs auto
 
 ```bash
 # Full system check
-uv run python -m benchmark.ollama_check
+uv run -m benchmark.ollama_check
 
 # Check specific model
-uv run python -m benchmark.ollama_check --model llama2
+uv run -m benchmark.ollama_check --model llama2
 
 # Quiet mode (less output)
-uv run python -m benchmark.ollama_check --quiet
+uv run -m benchmark.ollama_check --quiet
 
 # JSON output for automation
-uv run python -m benchmark.ollama_check --json
+uv run -m benchmark.ollama_check --json
 
 # Auto-pull missing models
-uv run python -m benchmark.ollama_check --model codellama --pull
+uv run -m benchmark.ollama_check --model codellama --pull
 ```
 
 ### Integrated Health Check
@@ -103,13 +103,13 @@ When running benchmarks with Ollama models, the health check runs automatically:
 
 ```bash
 # Automatic check when using ollama/ prefix
-uv run python -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
+uv run -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
 
 # Manual check
-uv run python -m benchmark.task_runner --check-ollama
+uv run -m benchmark.task_runner --check-ollama
 
 # Skip checks if you're confident everything is set up
-uv run python -m benchmark.task_runner "ollama/llama2" "task.md" --skip-ollama-check
+uv run -m benchmark.task_runner "ollama/llama2" "task.md" --skip-ollama-check
 ```
 
 ### What Gets Checked?
@@ -139,19 +139,19 @@ When using Ollama models, use the `ollama/` prefix:
 
 ```bash
 # Correct format
-uv run python -m benchmark.task_runner "ollama/llama2" "task.md"
-uv run python -m benchmark.task_runner "ollama/codellama" "task.md"
-uv run python -m benchmark.task_runner "ollama/mistral" "task.md"
+uv run -m benchmark.task_runner "ollama/llama2" "task.md"
+uv run -m benchmark.task_runner "ollama/codellama" "task.md"
+uv run -m benchmark.task_runner "ollama/mistral" "task.md"
 
 # Alternative format (also supported)
-uv run python -m benchmark.task_runner "ollama-llama2" "task.md"
+uv run -m benchmark.task_runner "ollama-llama2" "task.md"
 ```
 
 ### Example Workflow
 
 1. **Check your setup**:
    ```bash
-   uv run python -m benchmark.ollama_check
+   uv run -m benchmark.ollama_check
    ```
 
 2. **Pull required models**:
@@ -162,12 +162,12 @@ uv run python -m benchmark.task_runner "ollama-llama2" "task.md"
 
 3. **Run a benchmark**:
    ```bash
-   uv run python -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
+   uv run -m benchmark.task_runner "ollama/llama2" "benchmark/tasks/easy/fix_typo.md"
    ```
 
 4. **Analyze results**:
    ```bash
-   uv run python -m benchmark.analyze
+   uv run -m benchmark.analyze
    ```
 
 ## Troubleshooting
@@ -215,7 +215,7 @@ ollama pull mistral
 ollama pull <model-name>
 
 # Or use auto-pull:
-uv run python -m benchmark.ollama_check --model <model-name> --pull
+uv run -m benchmark.ollama_check --model <model-name> --pull
 ```
 
 #### 5. "Connection refused" error
@@ -270,9 +270,9 @@ For automated testing, use JSON output:
 
 ```bash
 # Check if Ollama is ready
-if uv run python -m benchmark.ollama_check --json | jq -e '.ready'; then
+if uv run -m benchmark.ollama_check --json | jq -e '.ready'; then
     echo "Ollama is ready"
-    uv run python -m benchmark.task_runner "ollama/llama2" "task.md"
+    uv run -m benchmark.task_runner "ollama/llama2" "task.md"
 else
     echo "Ollama setup incomplete"
     exit 1

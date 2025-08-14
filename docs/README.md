@@ -94,17 +94,17 @@ See [models.md](models.md) for configuration.
 
 ### Running a Benchmark
 ```bash
-python benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
+uv run benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
 ```
 
 ### Smoke Test (30 seconds)
 ```bash
-python run_smoke_test.py
+uv run run_smoke_test.py
 ```
 
 ### Analyzing Results
 ```bash
-python benchmark/analyze.py
+uv run benchmark/analyze.py
 ```
 
 ### Test Suite
