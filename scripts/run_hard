@@ -1,0 +1,145 @@
+#!/usr/bin/env python3
+"""
+Run hard benchmark tasks for demos - challenging but impressive tasks
+Perfect for demonstrating AI coding capabilities
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+import json
+from datetime import datetime
+import time
+
+# Models to test - using your best available models
+MODELS = [
+    "ollama/gpt-oss:20b",
+    "ollama/qwen2.5-coder:14b",  # Using 14b version for better performance on hard tasks
+    "ollama/codestral:22b"  # Also available and good for coding
+]
+
+# Hard tasks that are good for demos
+DEMO_TASKS = [
+    "benchmark/tasks/hard/refactor_user_manager.md",  # Clean refactoring demo
+    "benchmark/tasks/hard/optimize_analytics.md",      # Performance optimization
+    "benchmark/tasks/hard/design_pattern_refactor.md", # Design patterns showcase
+]
+
+def run_benchmark(task_path, models):
+    """Run a single benchmark task on specified models."""
+    models_str = ",".join(models)
+    cmd = [
+        "uv", "run", "python",
+        "benchmark/batch_runner.py",
+        "--task", str(task_path),
+        "--models", models_str,
+        "--timeout", "3600"  # 1 hour timeout per model
+    ]
+    
+    task_name = Path(task_path).stem.replace('_', ' ').title()
+    
+    print(f"\n{'='*70}")
+    print(f"🎯 TASK: {task_name}")
+    print(f"📁 File: {Path(task_path).name}")
+    print(f"🤖 Models: {len(models)} models competing")
+    for model in models:
+        print(f"   • {model.split('/')[-1]}")
+    print(f"{'='*70}")
+    
+    start_time = time.time()
+    
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        elapsed = time.time() - start_time
+        
+        # Always show output for debugging
+        if result.stdout:
+            print(f"📝 Output:")
+            for line in result.stdout.strip().split('\n')[:10]:  # Show first 10 lines
+                print(f"    {line}")
+        
+        if result.returncode != 0:
+            print(f"⚠️  Task completed with warnings/errors")
+            if result.stderr:
+                # Show full stderr output for debugging
+                print(f"⚠️  Error details:")
+                for line in result.stderr.strip().split('\n'):
+                    print(f"    {line}")
+        else:
+            print(f"✅ Successfully completed in {elapsed:.1f} seconds")
+            
+        return result.returncode == 0, elapsed
+    except Exception as e:
+        print(f"❌ Failed: {e}")
+        return False, 0
+
+def print_banner():
+    """Print a nice banner for demos."""
+    print("\n" + "="*70)
+    print("🚀 VIBE CHECK - AI CODING BENCHMARK DEMO")
+    print("="*70)
+    print("📊 Testing advanced coding capabilities with hard challenges")
+    print(f"🤖 {len(MODELS)} Top Models Competing:")
+    for i, model in enumerate(MODELS, 1):
+        model_name = model.split('/')[-1]
+        print(f"   {i}. {model_name}")
+    print("="*70)
+    time.sleep(2)  # Dramatic pause for demos
+
+def main():
+    """Run hard benchmarks for demo purposes."""
+    print_banner()
+    
+    print(f"\n⏰ Starting at: {datetime.now().strftime('%H:%M:%S')}")
+    print(f"📝 Running {len(DEMO_TASKS)} challenging tasks\n")
+    
+    results = {}
+    total_time = 0
+    
+    for i, task in enumerate(DEMO_TASKS, 1):
+        print(f"\n{'🔥' * 10}")
+        print(f"CHALLENGE {i} of {len(DEMO_TASKS)}")
+        print(f"{'🔥' * 10}")
+        
+        success, elapsed = run_benchmark(task, MODELS)
+        results[task] = {"success": success, "time": elapsed}
+        total_time += elapsed
+        
+        if i < len(DEMO_TASKS):
+            print(f"\n⏳ Preparing next challenge...")
+            time.sleep(3)  # Brief pause between tasks for demos
+    
+    # Summary
+    print(f"\n{'='*70}")
+    print(f"🏆 BENCHMARK RESULTS")
+    print(f"{'='*70}")
+    
+    successful = sum(1 for r in results.values() if r["success"])
+    print(f"✅ Completed: {successful}/{len(DEMO_TASKS)} tasks")
+    print(f"⏱️  Total time: {total_time:.1f} seconds ({total_time/60:.1f} minutes)")
+    print(f"📊 Average per task: {total_time/len(DEMO_TASKS):.1f} seconds")
+    
+    print(f"\n📈 Task Performance:")
+    for task, result in results.items():
+        task_name = Path(task).stem.replace('_', ' ').title()
+        status = "✅" if result["success"] else "❌"
+        print(f"   {status} {task_name}: {result['time']:.1f}s")
+    
+    # Find latest results
+    results_dir = Path("benchmark/results")
+    if results_dir.exists():
+        batch_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir() and d.name.startswith("batch_")])
+        if batch_dirs:
+            latest = batch_dirs[-1]
+            print(f"\n📁 Detailed results available at:")
+            print(f"   {latest}/")
+            print(f"\n🌐 View HTML report:")
+            print(f"   open {latest}/comparison_report.html")
+    
+    print(f"\n⏰ Completed at: {datetime.now().strftime('%H:%M:%S')}")
+    print("="*70)
+    print("🎉 Demo complete! Check the HTML report for detailed comparisons.")
+    print("="*70)
+
+if __name__ == "__main__":
+    main()

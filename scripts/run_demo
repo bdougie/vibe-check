@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""
+Quick demo script - runs medium difficulty tasks that are interesting but not too long
+Perfect for live demonstrations (5-10 minutes total)
+"""
+
+import subprocess
+import sys
+from pathlib import Path
+import json
+from datetime import datetime
+import time
+
+# Models for demo - pick the most impressive ones
+MODELS = [
+    "ollama/gpt-oss:20b",
+    "ollama/qwen2.5-coder:14b",
+]
+
+# Medium tasks that are good for quick demos
+DEMO_TASKS = [
+    "benchmark/tasks/medium/add_validation.md",  # Clear, practical task
+    "benchmark/tasks/medium/add_export_feature.md",  # Feature addition
+]
+
+def run_benchmark(task_path, models):
+    """Run a single benchmark task on specified models."""
+    models_str = ",".join(models)
+    cmd = [
+        "uv", "run", "python",
+        "benchmark/batch_runner.py",
+        "--task", str(task_path),
+        "--models", models_str,
+        "--timeout", "600"  # 10 minute timeout for quick demos
+    ]
+    
+    task_name = Path(task_path).stem.replace('_', ' ').title()
+    
+    print(f"\n{'='*70}")
+    print(f"🎯 DEMO TASK: {task_name}")
+    print(f"📁 File: {Path(task_path).name}")
+    print(f"🤖 Testing {len(models)} models:")
+    for model in models:
+        print(f"   • {model.split('/')[-1]}")
+    print(f"{'='*70}")
+    
+    start_time = time.time()
+    
+    try:
+        # Show real-time output for demos
+        result = subprocess.run(cmd, text=True)
+        elapsed = time.time() - start_time
+        
+        print(f"\n✅ Task completed in {elapsed:.1f} seconds ({elapsed/60:.1f} minutes)")
+        return True, elapsed
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return False, 0
+
+def print_banner():
+    """Print demo banner."""
+    print("\n" + "🌟"*35)
+    print("     VIBE CHECK - AI CODING BENCHMARK DEMO")
+    print("🌟"*35)
+    print("\n📊 Comparing AI models on real coding tasks")
+    print(f"🤖 Models in this demo:")
+    for model in MODELS:
+        model_name = model.split('/')[-1]
+        print(f"   • {model_name}")
+    print("\n⚡ Each task takes 2-5 minutes")
+    print("="*70)
+    time.sleep(2)
+
+def main():
+    """Run quick demo."""
+    print_banner()
+    
+    print(f"\n⏰ Demo starting at: {datetime.now().strftime('%H:%M:%S')}")
+    print(f"📝 Running {len(DEMO_TASKS)} medium-difficulty tasks\n")
+    
+    total_time = 0
+    
+    for i, task in enumerate(DEMO_TASKS, 1):
+        print(f"\n{'🚀' * 10}")
+        print(f"TASK {i} of {len(DEMO_TASKS)}")
+        print(f"{'🚀' * 10}")
+        
+        success, elapsed = run_benchmark(task, MODELS)
+        total_time += elapsed
+        
+        if i < len(DEMO_TASKS):
+            print(f"\n⏳ Next task starting in 3 seconds...")
+            time.sleep(3)
+    
+    # Quick summary
+    print(f"\n{'='*70}")
+    print(f"🏆 DEMO COMPLETE!")
+    print(f"{'='*70}")
+    print(f"⏱️  Total demo time: {total_time/60:.1f} minutes")
+    
+    # Find latest results
+    results_dir = Path("benchmark/results")
+    if results_dir.exists():
+        batch_dirs = sorted([d for d in results_dir.iterdir() if d.is_dir() and d.name.startswith("batch_")])
+        if batch_dirs:
+            latest = batch_dirs[-1]
+            print(f"\n📊 View detailed comparison report:")
+            print(f"   open {latest}/comparison_report.html")
+    
+    print("\n✨ Thanks for watching the Vibe Check demo!")
+    print("="*70)
+
+if __name__ == "__main__":
+    main()
