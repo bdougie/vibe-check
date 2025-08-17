@@ -235,7 +235,7 @@ class TestContinueSessionTracker:
         """Test exporting metrics in benchmark format."""
         session_id = self.create_mock_session()
         self.tracker.load_session(session_id)
-        
+
         # Get comprehensive metrics
         metrics = self.tracker.get_comprehensive_metrics()
 
@@ -349,7 +349,7 @@ class TestIntegration:
 
             # Load session first
             tracker.load_session(session_id)
-            
+
             # Extract metrics
             metrics = tracker.get_comprehensive_metrics()
 

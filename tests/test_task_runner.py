@@ -50,11 +50,13 @@ class TestTaskRunner:
     @patch("benchmark.continue_session_tracker.find_active_continue_session")
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_success(self, mock_metrics_class, mock_input, mock_find_session):
+    def test_run_benchmark_task_success(
+        self, mock_metrics_class, mock_input, mock_find_session
+    ):
         """Test run_benchmark_task with successful completion"""
         # Mock Continue session not found (force manual input)
         mock_find_session.return_value = None
-        
+
         # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
             "",  # Press Enter to start
@@ -129,7 +131,7 @@ class TestTaskRunner:
         """Test run_benchmark_task with automatic git tracking"""
         # Mock Continue session not found (force manual input)
         mock_find_session.return_value = None
-        
+
         # Mock user inputs - git stats no longer asked
         mock_input.side_effect = [
             "",  # Press Enter to start
@@ -163,11 +165,13 @@ class TestTaskRunner:
     @patch("benchmark.continue_session_tracker.find_active_continue_session")
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_default_values(self, mock_metrics_class, mock_input, mock_find_session):
+    def test_run_benchmark_task_default_values(
+        self, mock_metrics_class, mock_input, mock_find_session
+    ):
         """Test run_benchmark_task with default values for empty inputs"""
         # Mock Continue session not found (force manual input)
         mock_find_session.return_value = None
-        
+
         # Mock user inputs with empty strings (should use defaults)
         mock_input.side_effect = [
             "",  # Press Enter to start

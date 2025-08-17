@@ -51,11 +51,11 @@ jobs:
         uv pip install --system pytest pytest-cov coverage || true
         
         # Run tests with coverage (lower threshold initially)
-        uv run pytest --cov=benchmark --cov=. \
+        uv run pytest --cov=benchmark --cov=scripts \
                --cov-report=html:htmlcov \
                --cov-report=xml:coverage.xml \
                --cov-report=term-missing \
-               -v || uv run pytest -v || uv run run_tests.py
+               -v || uv run pytest -v || uv run python scripts/run_tests.py
                
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
@@ -82,7 +82,7 @@ jobs:
       run: |
         # Test that core modules can be imported
         uv run python -c "import benchmark.metrics; print('✅ metrics.py imports successfully')"
-        uv run python -c "import benchmark_task; print('✅ benchmark_task.py imports successfully')"
+        uv run python -c "import sys; sys.path.insert(0, 'scripts'); import benchmark_task; print('✅ benchmark_task.py imports successfully')"
         uv run python -c "import benchmark.task_runner; print('✅ task_runner.py imports successfully')"
         
         # Test that task files exist
@@ -141,7 +141,7 @@ jobs:
         uv pip install --system types-requests types-setuptools || true
         # Run mypy on core modules (may have some issues to fix)
         uv run mypy benchmark/ --ignore-missing-imports || true
-        uv run mypy benchmark_task.py --ignore-missing-imports || true
+        uv run mypy scripts/benchmark_task.py --ignore-missing-imports || true
 
   pre-commit:
     runs-on: ubuntu-latest
