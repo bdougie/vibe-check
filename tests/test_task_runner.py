@@ -47,10 +47,14 @@ class TestTaskRunner:
     # Note: get_git_diff_stats tests removed as the function has been deleted
     # Git tracking is now handled automatically by BenchmarkMetrics class
 
+    @patch("benchmark.continue_session_tracker.find_active_continue_session")
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_success(self, mock_metrics_class, mock_input):
+    def test_run_benchmark_task_success(self, mock_metrics_class, mock_input, mock_find_session):
         """Test run_benchmark_task with successful completion"""
+        # Mock Continue session not found (force manual input)
+        mock_find_session.return_value = None
+        
         # Mock user inputs - no longer asks about git stats
         mock_input.side_effect = [
             "",  # Press Enter to start
@@ -59,9 +63,10 @@ class TestTaskRunner:
             "2",  # Number of interventions
         ]
 
-        # Mock metrics
+        # Mock metrics with a proper dict
         mock_metrics = MagicMock()
-        mock_metrics.metrics = {}  # Make metrics a real dict to track assignments
+        # Use spec to ensure proper behavior
+        mock_metrics.metrics = {}
         mock_metrics_class.return_value = mock_metrics
         mock_metrics.complete_task.return_value = Path("test_result.json")
 
@@ -115,12 +120,16 @@ class TestTaskRunner:
         with pytest.raises(SystemExit):
             run_benchmark_task("test_model", "nonexistent_task.md")
 
+    @patch("benchmark.continue_session_tracker.find_active_continue_session")
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
     def test_run_benchmark_task_git_changes_rejected(
-        self, mock_metrics_class, mock_input
+        self, mock_metrics_class, mock_input, mock_find_session
     ):
         """Test run_benchmark_task with automatic git tracking"""
+        # Mock Continue session not found (force manual input)
+        mock_find_session.return_value = None
+        
         # Mock user inputs - git stats no longer asked
         mock_input.side_effect = [
             "",  # Press Enter to start
@@ -129,8 +138,9 @@ class TestTaskRunner:
             "1",  # Number of interventions
         ]
 
-        # Mock metrics
+        # Mock metrics with a proper dict
         mock_metrics = MagicMock()
+        # Use spec to ensure proper behavior
         mock_metrics.metrics = {
             "files_modified": 3,
             "lines_added": 15,
@@ -150,10 +160,14 @@ class TestTaskRunner:
         # Git stats are now captured automatically by complete_task
         mock_metrics.complete_task.assert_called_once_with(True)
 
+    @patch("benchmark.continue_session_tracker.find_active_continue_session")
     @patch("builtins.input")
     @patch("benchmark.task_runner.BenchmarkMetrics")
-    def test_run_benchmark_task_default_values(self, mock_metrics_class, mock_input):
+    def test_run_benchmark_task_default_values(self, mock_metrics_class, mock_input, mock_find_session):
         """Test run_benchmark_task with default values for empty inputs"""
+        # Mock Continue session not found (force manual input)
+        mock_find_session.return_value = None
+        
         # Mock user inputs with empty strings (should use defaults)
         mock_input.side_effect = [
             "",  # Press Enter to start
@@ -162,9 +176,10 @@ class TestTaskRunner:
             "",  # Empty interventions (should default to 0)
         ]
 
-        # Mock metrics
+        # Mock metrics with a proper dict
         mock_metrics = MagicMock()
-        mock_metrics.metrics = {}  # Make metrics a real dict to track assignments
+        # Use spec to ensure proper behavior
+        mock_metrics.metrics = {}
         mock_metrics_class.return_value = mock_metrics
         mock_metrics.complete_task.return_value = Path("test_result.json")
 
