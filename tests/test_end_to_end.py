@@ -5,7 +5,11 @@ End-to-end test of the benchmark workflow
 
 import json
 from pathlib import Path
+import sys
 from unittest.mock import patch
+
+# Add scripts directory to path to import benchmark_task
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 import benchmark_task
 

@@ -200,9 +200,15 @@ class BatchRunner:
                 found = False
                 for available in available_models:
                     # Handle model tags like "ollama/model:tag" matching "ollama/model"
-                    model_base = model_spec.split(":")[0] if ":" in model_spec else model_spec
-                    available_base = available["name"].split(":")[0] if ":" in available["name"] else available["name"]
-                    
+                    model_base = (
+                        model_spec.split(":")[0] if ":" in model_spec else model_spec
+                    )
+                    available_base = (
+                        available["name"].split(":")[0]
+                        if ":" in available["name"]
+                        else available["name"]
+                    )
+
                     if (
                         model_base == available_base
                         or model_spec == available["name"]

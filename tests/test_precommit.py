@@ -13,7 +13,7 @@ def poorly_formatted_function(x, y, z):  # Missing spaces (ruff will fix)
 # Trailing whitespace on next line (ruff will fix)
 
 
-class TestClass:
+class TestSampleClass:
     def __init__(self):
         pass
 
@@ -36,7 +36,7 @@ if __name__ == "__main__":
     print("Result:", result)
 
     # Instantiate test class
-    test = TestClass()
+    test = TestSampleClass()
     msg, nums = test.method_with_issues()
     print("Message:", msg)
     print("Numbers:", nums)

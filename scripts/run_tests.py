@@ -20,7 +20,7 @@ def test_file_structure():
         ".github/workflows/ci.yml",
         "benchmark/metrics.py",
         "benchmark/task_runner.py",
-        "benchmark_task.py",
+        "scripts/benchmark_task.py",
         "tests/__init__.py",
         "tests/test_metrics.py",
         "tests/test_benchmark_task.py",
@@ -58,6 +58,7 @@ def test_imports():
 
     # Test benchmark_task import
     try:
+        sys.path.insert(0, str(Path(__file__).parent))
         import benchmark_task  # noqa: F401
 
         print("✅ benchmark_task imported successfully")
