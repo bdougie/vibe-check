@@ -1,7 +1,0 @@
-model,task,prompts_sent,chars_sent,chars_received,human_interventions,task_completed,completion_time,files_modified,lines_added,lines_removed,session_log,filename
-test_model,test_task,5,0,0,2,True,0.000442,0,0,0,"[{'timestamp': 1755045123.713648, 'event': 'task_completed', 'data': {'success': True}}]",test_model_test_task_20250812_203203.json
-test_model,test_task,5,0,0,2,True,0.00038,0,0,0,"[{'timestamp': 1755045178.515219, 'event': 'task_completed', 'data': {'success': True}}]",test_model_test_task_20250812_203258.json
-test_model,test_task,0,0,0,0,False,0.0,0,0,0,"[{'timestamp': 1755058056.151357, 'event': 'task_completed', 'data': {'success': False}}]",test_model_test_task_20250813_000736.json
-test_model,test_task,0,0,0,0,True,0.0,0,0,0,"[{'timestamp': 1755045053.881218, 'event': 'task_completed', 'data': {'success': True}}]",test_model_test_task_20250812_203053.json
-test_model,add_gitignore_entry,3,0,0,1,True,0.000244,0,0,0,"[{'timestamp': 1755045191.0333812, 'event': 'task_completed', 'data': {'success': True}}]",test_model_add_gitignore_entry_20250812_203311.json
-test_model,add_gitignore_entry,3,0,0,1,True,0.000233,0,0,0,"[{'timestamp': 1755045148.454655, 'event': 'task_completed', 'data': {'success': True}}]",test_model_add_gitignore_entry_20250812_203228.json

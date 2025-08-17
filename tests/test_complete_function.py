@@ -6,7 +6,11 @@ Test the actual complete_benchmark function directly
 from datetime import datetime
 import json
 from pathlib import Path
+import sys
 from unittest.mock import patch
+
+# Add scripts directory to path to import benchmark_task
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 # Import the module
 import benchmark_task
