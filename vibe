@@ -22,9 +22,17 @@ from typing import Optional, List, Dict
 import random
 import json
 from datetime import datetime
+import os
 
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Get the actual script location (resolving symlinks)
+SCRIPT_PATH = Path(__file__).resolve()
+PROJECT_ROOT = SCRIPT_PATH.parent
+
+# Add project root to path for imports
+sys.path.insert(0, str(PROJECT_ROOT))
+
+# Change to project directory for proper imports and execution
+os.chdir(PROJECT_ROOT)
 
 from benchmark.cn_integration.cn_runner import CNRunner
 from benchmark.cn_integration.cn_config import CNConfigManager
@@ -36,7 +44,8 @@ class VibeCLI:
     """CLI wrapper for Vibe Check + Continue integration."""
     
     def __init__(self):
-        self.project_root = Path(__file__).parent
+        # Use the global PROJECT_ROOT
+        self.project_root = PROJECT_ROOT
         self.tasks_dir = self.project_root / "benchmark" / "tasks"
         self.results_dir = self.project_root / "benchmark" / "results"
         

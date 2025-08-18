@@ -57,6 +57,9 @@ cd vibe-check
 
 # Install dependencies with uv (10-100x faster than pip)
 uv pip sync requirements.txt
+
+# Install the vibe CLI command (optional but recommended)
+./install.sh
 ```
 
 ## Usage
@@ -66,22 +69,27 @@ uv pip sync requirements.txt
 The easiest way to run benchmarks is with the new `vibe` CLI wrapper:
 
 ```bash
+# After running ./install.sh, you can use vibe directly:
+
 # List available challenges and models
-uv run ./vibe --list-challenges
-uv run ./vibe --list-models
+vibe --list-challenges
+vibe --list-models
 
 # Run a specific task
-uv run ./vibe --model qwen2.5-coder:7b --task basic_todo_app
+vibe --model qwen2.5-coder:7b --task basic_todo_app
 
 # Run a random challenge by difficulty
-uv run ./vibe --model gpt-oss:20b --challenge easy --random
+vibe --model gpt-oss:20b --challenge easy --random
 
 # Interactive mode (opens Continue CLI)
-uv run ./vibe --model codestral:22b --challenge medium --interactive
+vibe --model codestral:22b --challenge medium --interactive
 
 # Quick examples
-uv run ./vibe -m gpt-oss:20b -c easy        # Choose from easy challenges
-uv run ./vibe -m qwen2.5-coder:14b -t fix_typo  # Run specific task
+vibe -m gpt-oss:20b -c easy                 # Choose from easy challenges
+vibe -m qwen2.5-coder:14b -t fix_typo       # Run specific task
+
+# If you haven't installed, use with uv run:
+uv run ./vibe --model gpt-oss:20b --challenge easy
 ```
 
 See [docs/vibe-cli.md](docs/vibe-cli.md) for full CLI documentation.

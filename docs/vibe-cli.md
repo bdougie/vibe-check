@@ -4,30 +4,30 @@ The Vibe CLI is a powerful wrapper around Continue CLI that makes it easy to run
 
 ## Installation
 
-The `vibe` script is included in the repository. No additional installation needed!
-
 ```bash
-# Make sure it's executable (first time only)
-chmod +x vibe
+# From the vibe-check directory, run the install script
+./install.sh
 
-# Run with uv for dependency management
-uv run ./vibe --help
+# Now you can use vibe directly from anywhere!
+vibe --help
 ```
+
+The install script creates a symlink to the vibe command, making it available system-wide. The script uses `uv run` internally to manage Python dependencies automatically.
 
 ## Quick Start
 
 ```bash
 # List available challenges
-uv run ./vibe --list-challenges
+vibe --list-challenges
 
 # List available models
-uv run ./vibe --list-models
+vibe --list-models
 
 # Run a specific task
-uv run ./vibe --model qwen2.5-coder:7b --task fix_typo
+vibe --model qwen2.5-coder:7b --task fix_typo
 
 # Run a random easy challenge
-uv run ./vibe --model gpt-oss:20b --challenge easy --random
+vibe --model gpt-oss:20b --challenge easy --random
 ```
 
 ## Command Reference
