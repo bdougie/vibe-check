@@ -6,16 +6,16 @@ This module extends the BatchRunner class to support CN-based execution alongsid
 the existing manual benchmarking approach.
 """
 
+from datetime import datetime
 import json
 import logging
-import time
-from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+import time
+from typing import Any, Dict, List, Optional
 
-from benchmark.cn_integration.cn_runner import CNRunner
 from benchmark.cn_integration.cn_config import CNConfigManager
 from benchmark.cn_integration.cn_metrics import CNMetricsCollector
+from benchmark.cn_integration.cn_runner import CNRunner
 
 logger = logging.getLogger(__name__)
 
@@ -286,7 +286,7 @@ class CNBatchIntegration:
         csv_file = output_dir / "cn_batch_results.csv"
         self._generate_csv_report(summary, csv_file)
         
-        print(f"\n📊 CN Batch Results:")
+        print("\n📊 CN Batch Results:")
         print(f"   JSON Report: {json_file}")
         print(f"   HTML Report: {html_file}")
         print(f"   CSV Data: {csv_file}")

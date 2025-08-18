@@ -5,12 +5,12 @@ Configuration Management for Continue CLI Integration
 Handles creation and management of CN config files for different models and providers.
 """
 
-import os
-import tempfile
-import yaml
-from pathlib import Path
-from typing import Dict, Any, Optional
 import logging
+from pathlib import Path
+import tempfile
+from typing import Any, Dict, Optional
+
+import yaml
 
 logger = logging.getLogger(__name__)
 

@@ -6,20 +6,18 @@ This module provides automated task execution using the Continue CLI in headless
 It handles task preparation, execution, and metrics collection for benchmarking AI models.
 """
 
+from datetime import datetime
 import json
 import logging
-import os
+from pathlib import Path
+import re
+import shlex
 import subprocess
 import tempfile
 import time
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import shlex
-import re
+from typing import Any, Dict, List, Optional, Tuple
 
-from benchmark.metrics import BenchmarkMetrics
-from benchmark.validators import ValidationError, validate_task_file
+from benchmark.validators import validate_task_file
 
 logger = logging.getLogger(__name__)
 
@@ -383,7 +381,7 @@ class CNRunner:
             permissions = self._get_permission_flags(task_type)
             
             # Record initial git state
-            initial_git_state = self._get_git_changes()
+            self._get_git_changes()
             
             # Execute CN command
             stdout, stderr, returncode = self._execute_cn_command(

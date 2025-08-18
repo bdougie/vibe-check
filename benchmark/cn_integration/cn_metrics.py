@@ -5,13 +5,13 @@ Metrics Extraction for Continue CLI Integration
 Provides enhanced metrics collection and analysis for CN-based benchmark runs.
 """
 
+from datetime import datetime
 import json
+import logging
+from pathlib import Path
 import re
 import subprocess
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
-import logging
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
