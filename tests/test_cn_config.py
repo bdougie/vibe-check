@@ -5,11 +5,11 @@ Test suite for Continue CLI Configuration Manager
 Tests the CNConfigManager class and its configuration generation functionality.
 """
 
+from pathlib import Path
 import tempfile
 import unittest
+
 import yaml
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 from benchmark.cn_integration.cn_config import CNConfigManager
 

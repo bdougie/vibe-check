@@ -6,11 +6,10 @@ These tests verify the complete CN integration workflow from task execution
 to metrics collection and reporting.
 """
 
-import json
+from pathlib import Path
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -203,7 +202,7 @@ Task completed""",
     @patch('subprocess.run')
     def test_error_handling_workflow(self, mock_run, mock_validate):
         """Test error handling in the complete workflow."""
-        from benchmark.cn_integration.cn_runner import CNRunner, CNExecutionError
+        from benchmark.cn_integration.cn_runner import CNRunner
         
         # Mock validate_task_file to return the path directly
         mock_validate.return_value = self.task_file

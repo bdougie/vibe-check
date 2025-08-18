@@ -5,10 +5,9 @@ Test suite for Continue CLI Metrics Collector
 Tests the CNMetricsCollector class and its metrics analysis functionality.
 """
 
-import json
+from pathlib import Path
 import tempfile
 import unittest
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 from benchmark.cn_integration.cn_metrics import CNMetricsCollector

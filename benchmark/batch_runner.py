@@ -797,7 +797,7 @@ def run_batch_benchmark_with_cn(
             output_dir=Path(output_dir) if output_dir else None
         )
         
-        print(f"\n✅ CN Batch completed!")
+        print("\n✅ CN Batch completed!")
         print(f"📊 Success rate: {result.get('success_rate', 0):.1f}%")
         print(f"⏱️  Total time: {result.get('total_time', 0)/60:.1f} minutes")
         

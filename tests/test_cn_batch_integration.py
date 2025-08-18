@@ -6,12 +6,10 @@ Tests the CNBatchIntegration class and its batch processing functionality.
 """
 
 import json
+from pathlib import Path
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
-
-import pytest
+from unittest.mock import patch
 
 from benchmark.cn_integration.cn_batch_integration import CNBatchIntegration
 

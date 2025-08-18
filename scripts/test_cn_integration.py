@@ -5,15 +5,14 @@ Test script for Continue CLI integration with Vibe Check benchmarks.
 This script tests the CN integration with a simple task to verify everything works.
 """
 
-import json
-import sys
 from pathlib import Path
+import sys
 
 # Add the project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from benchmark.cn_integration.cn_runner import CNRunner
 from benchmark.cn_integration.cn_batch_integration import CNBatchIntegration
+from benchmark.cn_integration.cn_runner import CNRunner
 
 
 def test_cn_installation():
@@ -21,7 +20,7 @@ def test_cn_installation():
     print("🔍 Testing Continue CLI installation...")
     
     try:
-        runner = CNRunner(verbose=True)
+        CNRunner(verbose=True)
         print("✅ Continue CLI is available")
         return True
     except Exception as e:
@@ -52,7 +51,7 @@ def test_single_task():
         
         Please modify the file to fix these typos."""
         
-        print(f"📝 Running test prompt...")
+        print("📝 Running test prompt...")
         print(f"Working directory: {runner.working_dir}")
         
         # Note: This is a simplified test - in practice we'd use run_task()
@@ -108,7 +107,7 @@ def test_batch_integration():
         print(f"✅ Created test task: {task_files[0]}")
     
     try:
-        integration = CNBatchIntegration(verbose=True)
+        CNBatchIntegration(verbose=True)
         
         # Test with a simple model (you may need to adjust based on what's available)
         models = [{"name": "gpt-3.5-turbo"}]

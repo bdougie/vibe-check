@@ -3,13 +3,10 @@
 Fixed test suite for Continue CLI Runner
 """
 
-import json
+from pathlib import Path
 import tempfile
 import unittest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock, call
-
-import pytest
+from unittest.mock import Mock, patch
 
 
 class TestCNRunner(unittest.TestCase):
@@ -44,7 +41,7 @@ class TestCNRunner(unittest.TestCase):
         """Test CN availability check failure."""
         mock_run.side_effect = FileNotFoundError()
         
-        from benchmark.cn_integration.cn_runner import CNRunner, CNExecutionError
+        from benchmark.cn_integration.cn_runner import CNExecutionError, CNRunner
         
         with self.assertRaises(CNExecutionError):
             CNRunner(working_dir=self.temp_path)
@@ -107,7 +104,8 @@ class TestCNRunner(unittest.TestCase):
     def test_execute_cn_command_timeout(self, mock_run):
         """Test CN command timeout handling."""
         from subprocess import TimeoutExpired
-        from benchmark.cn_integration.cn_runner import CNRunner, CNExecutionError
+
+        from benchmark.cn_integration.cn_runner import CNExecutionError, CNRunner
         
         mock_run.side_effect = TimeoutExpired("cn", 60)
         
