@@ -1,0 +1,364 @@
+#!/usr/bin/env python3
+"""
+Vibe Check CLI Wrapper for Continue
+
+A wrapper around Continue CLI (cn) that makes it easy to run benchmarks
+and challenges with different models.
+
+Usage:
+    vibe --model <model> --challenge <difficulty>
+    vibe --model qwen2.5-coder:7b --challenge easy
+    vibe --model gpt-oss:20b --task fix_typo
+    vibe --list-challenges
+    vibe --list-models
+"""
+
+import argparse
+import sys
+import subprocess
+import tempfile
+from pathlib import Path
+from typing import Optional, List, Dict
+import random
+import json
+from datetime import datetime
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from benchmark.cn_integration.cn_runner import CNRunner
+from benchmark.cn_integration.cn_config import CNConfigManager
+from benchmark.validators import validate_task_file
+from benchmark.metrics import BenchmarkMetrics
+
+
+class VibeCLI:
+    """CLI wrapper for Vibe Check + Continue integration."""
+    
+    def __init__(self):
+        self.project_root = Path(__file__).parent
+        self.tasks_dir = self.project_root / "benchmark" / "tasks"
+        self.results_dir = self.project_root / "benchmark" / "results"
+        
+    def list_challenges(self) -> Dict[str, List[str]]:
+        """List all available challenges by difficulty."""
+        challenges = {
+            "smoke": [],
+            "easy": [],
+            "medium": [],
+            "hard": []
+        }
+        
+        for difficulty in challenges.keys():
+            difficulty_dir = self.tasks_dir / difficulty
+            if difficulty_dir.exists():
+                for task_file in difficulty_dir.glob("*.md"):
+                    challenges[difficulty].append(task_file.stem)
+        
+        return challenges
+    
+    def list_models(self) -> List[str]:
+        """List available models from Ollama."""
+        try:
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')[1:]  # Skip header
+                models = []
+                for line in lines:
+                    if line.strip():
+                        model_name = line.split()[0]
+                        models.append(model_name)
+                return models
+            return []
+        except:
+            return []
+    
+    def get_random_challenge(self, difficulty: str) -> Optional[Path]:
+        """Get a random challenge of specified difficulty."""
+        difficulty_dir = self.tasks_dir / difficulty
+        if difficulty_dir.exists():
+            tasks = list(difficulty_dir.glob("*.md"))
+            if tasks:
+                return random.choice(tasks)
+        return None
+    
+    def get_specific_task(self, task_name: str) -> Optional[Path]:
+        """Find a specific task by name."""
+        for difficulty in ["smoke", "easy", "medium", "hard"]:
+            task_path = self.tasks_dir / difficulty / f"{task_name}.md"
+            if task_path.exists():
+                return task_path
+        return None
+    
+    def run_challenge(
+        self, 
+        model: str, 
+        task_path: Path,
+        interactive: bool = False,
+        timeout: int = 300
+    ) -> bool:
+        """Run a challenge with the specified model.
+        
+        Args:
+            model: Model name (e.g., "qwen2.5-coder:7b")
+            task_path: Path to the task file
+            interactive: If True, run in interactive mode (not headless)
+            timeout: Timeout in seconds for headless mode
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        print(f"\n{'='*60}")
+        print(f"🚀 Running Challenge: {task_path.stem}")
+        print(f"🤖 Model: {model}")
+        print(f"📁 Task: {task_path}")
+        print('='*60)
+        
+        # Read and display task
+        with open(task_path) as f:
+            content = f.read()
+            # Extract title and difficulty
+            for line in content.split('\n'):
+                if line.startswith("# Task:"):
+                    print(f"📝 {line[2:]}")
+                elif "**Difficulty**:" in line:
+                    print(f"📊 {line.strip()}")
+        
+        if interactive:
+            # Run in interactive mode
+            print("\n🎮 Starting interactive Continue session...")
+            print("💡 Use Ctrl+C to exit when done\n")
+            
+            # Create config for the model
+            config_manager = CNConfigManager()
+            config_path = config_manager.create_config(model)
+            
+            # Build command
+            cmd = [
+                "cn",
+                "--config", str(config_path),
+                "--auto"  # Auto mode allows all tools
+            ]
+            
+            # Start interactive session
+            try:
+                subprocess.run(cmd, cwd=self.project_root)
+                print("\n✅ Interactive session completed")
+                return True
+            except KeyboardInterrupt:
+                print("\n⚠️ Session interrupted")
+                return False
+            finally:
+                config_manager.cleanup_temp_configs()
+        else:
+            # Run in headless mode
+            print(f"\n🤖 Running in headless mode (timeout: {timeout}s)...")
+            
+            try:
+                runner = CNRunner(working_dir=self.project_root, verbose=True)
+                result = runner.run_task(
+                    model_name=model,
+                    task_file=task_path,
+                    timeout=timeout
+                )
+                
+                if result["success"]:
+                    print("\n✅ Task completed successfully!")
+                    print(f"⏱️  Time: {result['execution_time']:.2f}s")
+                    if result.get("metrics"):
+                        print(f"📊 Metrics:")
+                        for key, value in result["metrics"].items():
+                            if key not in ["cn_output", "cn_errors"]:
+                                print(f"   • {key}: {value}")
+                else:
+                    print("\n❌ Task failed")
+                    if result.get("error"):
+                        print(f"Error: {result['error']}")
+                
+                # Save results
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                result_file = self.results_dir / f"vibe_{model.replace(':', '-')}_{task_path.stem}_{timestamp}.json"
+                result_file.parent.mkdir(parents=True, exist_ok=True)
+                
+                with open(result_file, 'w') as f:
+                    json.dump(result, f, indent=2)
+                print(f"\n📁 Results saved to: {result_file}")
+                
+                return result["success"]
+                
+            except Exception as e:
+                print(f"\n❌ Error running task: {e}")
+                return False
+
+
+def main():
+    """Main entry point for the CLI."""
+    parser = argparse.ArgumentParser(
+        description="Vibe Check CLI - Benchmark AI models with Continue",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  vibe --model qwen2.5-coder:7b --challenge easy
+  vibe --model gpt-oss:20b --task basic_todo_app
+  vibe --model codestral:22b --challenge hard --interactive
+  vibe --list-challenges
+  vibe --list-models
+        """
+    )
+    
+    parser.add_argument(
+        "--model", "-m",
+        type=str,
+        help="Model to use (e.g., qwen2.5-coder:7b, gpt-oss:20b)"
+    )
+    
+    parser.add_argument(
+        "--challenge", "-c",
+        type=str,
+        choices=["smoke", "easy", "medium", "hard"],
+        help="Challenge difficulty level"
+    )
+    
+    parser.add_argument(
+        "--task", "-t",
+        type=str,
+        help="Specific task name (e.g., fix_typo, basic_todo_app)"
+    )
+    
+    parser.add_argument(
+        "--list-challenges", "-lc",
+        action="store_true",
+        help="List all available challenges"
+    )
+    
+    parser.add_argument(
+        "--list-models", "-lm",
+        action="store_true",
+        help="List available Ollama models"
+    )
+    
+    parser.add_argument(
+        "--interactive", "-i",
+        action="store_true",
+        help="Run in interactive mode (not headless)"
+    )
+    
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="Timeout in seconds for headless mode (default: 300)"
+    )
+    
+    parser.add_argument(
+        "--random", "-r",
+        action="store_true",
+        help="Select a random challenge from the specified difficulty"
+    )
+    
+    args = parser.parse_args()
+    
+    cli = VibeCLI()
+    
+    # Handle list commands
+    if args.list_challenges:
+        print("\n📋 Available Challenges:")
+        print("="*40)
+        challenges = cli.list_challenges()
+        for difficulty, tasks in challenges.items():
+            if tasks:
+                print(f"\n🎯 {difficulty.upper()}:")
+                for task in tasks:
+                    print(f"   • {task}")
+        return
+    
+    if args.list_models:
+        print("\n🤖 Available Ollama Models:")
+        print("="*40)
+        models = cli.list_models()
+        if models:
+            for model in models:
+                print(f"   • {model}")
+        else:
+            print("❌ No Ollama models found. Run 'ollama list' to check.")
+        return
+    
+    # Validate model is provided for running challenges
+    if not args.model and (args.challenge or args.task):
+        print("❌ Error: --model is required when running challenges")
+        parser.print_help()
+        sys.exit(1)
+    
+    # Find the task to run
+    task_path = None
+    
+    if args.task:
+        # Specific task requested
+        task_path = cli.get_specific_task(args.task)
+        if not task_path:
+            print(f"❌ Task '{args.task}' not found")
+            print("💡 Use --list-challenges to see available tasks")
+            sys.exit(1)
+    elif args.challenge:
+        # Challenge difficulty specified
+        if args.random:
+            task_path = cli.get_random_challenge(args.challenge)
+            if task_path:
+                print(f"🎲 Randomly selected: {task_path.stem}")
+        else:
+            # Show available tasks for this difficulty
+            challenges = cli.list_challenges()
+            tasks = challenges.get(args.challenge, [])
+            if not tasks:
+                print(f"❌ No {args.challenge} challenges found")
+                sys.exit(1)
+            
+            print(f"\n📋 Available {args.challenge} challenges:")
+            for i, task in enumerate(tasks, 1):
+                print(f"   {i}. {task}")
+            
+            # Let user choose
+            try:
+                choice = input(f"\n👉 Enter number (1-{len(tasks)}) or task name: ").strip()
+                if choice.isdigit():
+                    idx = int(choice) - 1
+                    if 0 <= idx < len(tasks):
+                        task_path = cli.get_specific_task(tasks[idx])
+                else:
+                    task_path = cli.get_specific_task(choice)
+                    
+                if not task_path:
+                    print("❌ Invalid selection")
+                    sys.exit(1)
+            except (KeyboardInterrupt, EOFError):
+                print("\n👋 Cancelled")
+                sys.exit(0)
+    
+    # Run the challenge
+    if task_path and args.model:
+        success = cli.run_challenge(
+            model=args.model,
+            task_path=task_path,
+            interactive=args.interactive,
+            timeout=args.timeout
+        )
+        
+        if success:
+            print("\n🎉 Challenge completed successfully!")
+        else:
+            print("\n💭 Challenge incomplete or failed")
+            sys.exit(1)
+    elif not task_path and args.model:
+        print("❌ No task specified. Use --challenge or --task")
+        parser.print_help()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

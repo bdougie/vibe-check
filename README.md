@@ -61,16 +61,41 @@ uv pip sync requirements.txt
 
 ## Usage
 
+### 🎯 NEW: Vibe CLI Wrapper
+
+The easiest way to run benchmarks is with the new `vibe` CLI wrapper:
+
+```bash
+# List available challenges and models
+uv run ./vibe --list-challenges
+uv run ./vibe --list-models
+
+# Run a specific task
+uv run ./vibe --model qwen2.5-coder:7b --task basic_todo_app
+
+# Run a random challenge by difficulty
+uv run ./vibe --model gpt-oss:20b --challenge easy --random
+
+# Interactive mode (opens Continue CLI)
+uv run ./vibe --model codestral:22b --challenge medium --interactive
+
+# Quick examples
+uv run ./vibe -m gpt-oss:20b -c easy        # Choose from easy challenges
+uv run ./vibe -m qwen2.5-coder:14b -t fix_typo  # Run specific task
+```
+
+See [docs/vibe-cli.md](docs/vibe-cli.md) for full CLI documentation.
+
 ### 🔥 Quick Smoke Test (30 seconds)
 
 Before running full benchmarks, verify your setup with a quick smoke test:
 
 ```bash
-# Run the automated smoke test
-uv run run_smoke_test.py
+# Using the vibe CLI
+uv run ./vibe --model gpt-oss:20b --challenge smoke
 
-# Or run manually with any model
-uv run benchmark/task_runner.py "test_model" "benchmark/tasks/smoke/add_comment.md" --smoke-test --skip-ollama-check
+# Or run the automated smoke test
+uv run run_smoke_test.py
 ```
 
 The smoke test:
@@ -156,20 +181,39 @@ uv run -m benchmark.ollama_check --model llama2
 uv run -m benchmark.ollama_check --model codellama --pull
 ```
 
-### 4. Analyze Results
+### 4. Featured Challenges
+
+#### 🆕 Todo App Challenges
+Test model planning and implementation capabilities:
+
+```bash
+# Basic Todo App (Medium difficulty)
+# Tests: Basic CRUD operations, class design, error handling
+uv run ./vibe --model qwen2.5-coder:14b --task basic_todo_app
+
+# Advanced Todo App (Hard difficulty)  
+# Tests: Persistence, categories, CLI, testing, architecture
+uv run ./vibe --model gpt-oss:20b --task advanced_todo_app
+```
+
+These challenges measure:
+- Planning and architecture skills
+- Code organization and design patterns
+- Error handling and edge cases
+- Test coverage and documentation
+- Performance with complex requirements
+
+### 5. Analyze Results
 
 View aggregated benchmark results:
 ```bash
-# Using uv (recommended)
+# Using vibe CLI (shows latest results)
+uv run ./vibe --list-results
+
+# Using analyze script for detailed analysis
 uv run benchmark/analyze.py
 
-# Or using module syntax
-uv run -m benchmark.analyze
-```
-
-Export results to CSV for further analysis:
-```bash
-# Using uv
+# Export results to CSV for further analysis
 uv run benchmark/analyze.py --export
 
 # With pandas visualization support

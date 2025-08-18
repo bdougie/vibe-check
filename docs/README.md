@@ -6,6 +6,7 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 
 ### Getting Started
 - [**Quick Start Checklist**](../QUICKSTART.md) - 15-minute setup with checkboxes ✅ **(Start Here!)**
+- [**Vibe CLI Guide**](vibe-cli.md) - 🆕 Easy-to-use CLI wrapper for benchmarking
 - [**Setup Guide**](setup.md) - Initial setup and configuration instructions
 - [**Manual Guide**](manual-guide.md) - In-depth guide to run benchmarks
 
@@ -25,10 +26,11 @@ Welcome to the Vibe Check documentation! This directory contains comprehensive g
 ### For New Users
 
 1. **Begin with the [Quick Start Checklist](../QUICKSTART.md)** - Interactive setup guide
-2. Review the [Setup Guide](setup.md) for detailed configuration options
-3. Follow the [Manual Guide](manual-guide.md) for in-depth benchmarking
-4. Use the [Continue Config Generator](continue-config.md) to set up VS Code integration
-5. Review [Models Configuration](models.md) to set up your preferred AI models
+2. **Try the [Vibe CLI](vibe-cli.md)** - Easiest way to run benchmarks
+3. Review the [Setup Guide](setup.md) for detailed configuration options
+4. Follow the [Manual Guide](manual-guide.md) for in-depth benchmarking
+5. Use the [Continue Config Generator](continue-config.md) to set up VS Code integration
+6. Review [Models Configuration](models.md) to set up your preferred AI models
 
 ### For Developers
 

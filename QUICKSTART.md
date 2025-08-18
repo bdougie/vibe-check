@@ -55,7 +55,20 @@ uv handles Python installation and package management automatically.
   uv run python -c "import pandas, yaml, pytest; print('✅ Dependencies installed')"
   ```
 
-## Step 3: Ollama Setup
+## Step 3: Quick Test with Vibe CLI 🆕
+
+### Test Setup with the Vibe CLI Wrapper
+
+- [ ] Run a quick smoke test:
+  ```bash
+  # List available challenges
+  uv run ./vibe --list-challenges
+  
+  # Run smoke test (no model needed)
+  uv run ./vibe --model test_model --challenge smoke
+  ```
+
+## Step 4: Ollama Setup (for Local Models)
 
 ### Install and Configure Ollama
 
@@ -81,7 +94,7 @@ uv handles Python installation and package management automatically.
   ollama list
   ```
 
-## Step 4: Download a Model
+## Step 5: Download a Model
 
 ### Get Your First Model
 
@@ -91,17 +104,24 @@ uv handles Python installation and package management automatically.
   ```
   This will take 5-10 minutes depending on your internet speed.
 
-- [ ] Alternative smaller models (if limited on resources):
+- [ ] Alternative models:
   ```bash
+  # Larger, more capable (20GB)
+  ollama pull gpt-oss:20b
+  
+  # Code-focused model (22GB)
+  ollama pull codestral:22b
+  
   # Smaller, faster option (3.8GB)
   ollama pull deepseek-coder:1.3b
-  
-  # Or for general purpose
-  ollama pull llama3.2:3b
   ```
 
 - [ ] Verify model is downloaded:
   ```bash
+  # Using vibe CLI
+  uv run ./vibe --list-models
+  
+  # Or directly with ollama
   ollama list
   ```
   You should see your model listed!
@@ -133,9 +153,21 @@ uv handles Python installation and package management automatically.
 
 ## Step 6: Run Your First Benchmark
 
-### Smoke Test (30-second validation)
+### Using the Vibe CLI (Recommended) 🆕
 
-- [ ] Run the smoke test:
+- [ ] Run your first benchmark with the Vibe CLI:
+  ```bash
+  # Run an easy challenge
+  uv run ./vibe --model qwen2.5-coder:7b --challenge easy
+  
+  # Or run a specific task
+  uv run ./vibe --model qwen2.5-coder:7b --task fix_typo
+  
+  # Try the new Todo App challenge
+  uv run ./vibe --model gpt-oss:20b --task basic_todo_app
+  ```
+
+- [ ] Alternative: Run the automated smoke test:
   ```bash
   uv run run_smoke_test.py
   ```
@@ -145,11 +177,6 @@ uv handles Python installation and package management automatically.
   - Run a simple task (fix a typo)
   - Complete in about 30 seconds
   - Save results automatically
-
-- [ ] Alternative: Run a specific benchmark:
-  ```bash
-  uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/fix_typo.md"
-  ```
 
 ## Step 7: View Your Results
 
