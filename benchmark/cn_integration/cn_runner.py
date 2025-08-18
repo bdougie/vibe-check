@@ -136,8 +136,8 @@ class CNRunner:
                 "Read()",
                 "--allow",
                 "Write()",
-                "--ask",
-                "Bash(*)",  # Ask before running any bash commands
+                "--allow",
+                "Bash(*)",  # Allow bash commands in headless mode
             ]
 
     def _create_temp_config(self, model_name: str, provider: str = "auto") -> Path:
@@ -150,49 +150,59 @@ class CNRunner:
         Returns:
             Path to temporary config file
         """
-        # Basic config structure for CN
-        config = {"models": {"chat": model_name}}
-
         # Handle different providers
         if provider == "auto":
             if model_name.startswith("ollama/"):
                 provider = "ollama"
                 model_name = model_name.replace("ollama/", "")
-            elif "gpt" in model_name.lower():
+            elif ":" in model_name:  # Ollama model format like qwen3-coder:30b
+                provider = "ollama"
+            elif "gpt-3" in model_name.lower() or "gpt-4" in model_name.lower():
                 provider = "openai"
             elif "claude" in model_name.lower():
                 provider = "anthropic"
+            else:
+                # Default to ollama for models like qwen, gpt-oss
+                provider = "ollama"
 
-        # Add provider-specific settings
-        if provider == "ollama":
-            config["models"]["chat"] = {"provider": "ollama", "model": model_name}
-        elif provider == "openai":
-            config["models"]["chat"] = {
-                "provider": "openai",
-                "model": model_name,
-                "apiKey": "${OPENAI_API_KEY}",
-            }
+        # Build model config based on provider
+        model_config = {"model": model_name, "provider": provider}
+        
+        if provider == "openai":
+            model_config["apiKey"] = "${OPENAI_API_KEY}"
         elif provider == "anthropic":
-            config["models"]["chat"] = {
-                "provider": "anthropic",
-                "model": model_name,
-                "apiKey": "${ANTHROPIC_API_KEY}",
-            }
+            model_config["apiKey"] = "${ANTHROPIC_API_KEY}"
 
-        # Create temporary file
+        # Create temporary file for YAML config
         temp_config = tempfile.NamedTemporaryFile(
             mode="w", suffix=".yaml", delete=False, prefix="cn_config_"
         )
-
-        # Write YAML content (simple format)
-        temp_config.write("models:\n")
-        temp_config.write("  chat:\n")
-        if isinstance(config["models"]["chat"], str):
-            temp_config.write(f"    model: {config['models']['chat']}\n")
-        else:
-            for key, value in config["models"]["chat"].items():
-                temp_config.write(f"    {key}: {value}\n")
-
+        
+        # Write proper YAML config based on Continue's format
+        yaml_content = f"""name: vibe-check-assistant
+version: 0.0.1
+models:
+  - name: {model_name}
+    provider: {provider}
+    model: {model_name}
+    roles:
+      - chat
+      - edit
+      - apply
+"""
+        
+        # Add API key if needed
+        if provider == "openai":
+            yaml_content += f"    apiKey: ${{OPENAI_API_KEY}}\n"
+        elif provider == "anthropic":
+            yaml_content += f"    apiKey: ${{ANTHROPIC_API_KEY}}\n"
+        
+        # Add capabilities only for models that support tools
+        if any(x in model_name.lower() for x in ["gpt-oss", "gpt-4", "gpt-3", "claude"]):
+            yaml_content += "    capabilities:\n      - tool_use\n"
+        
+        temp_config.write(yaml_content)
+        
         temp_config.flush()
         temp_config.close()
 

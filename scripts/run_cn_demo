@@ -49,8 +49,8 @@ def select_demo_tasks():
     """Select appropriate tasks for the demo."""
     demo_tasks = [
         "benchmark/tasks/easy/fix_typo.md",
-        "benchmark/tasks/easy/fix_calculator_typos.md", 
-        "benchmark/tasks/medium/add_validation.md"
+        "benchmark/tasks/medium/basic_todo_app.md",
+        "benchmark/tasks/hard/advanced_todo_app.md"
     ]
     
     available_tasks = []
@@ -76,9 +76,8 @@ def select_demo_models():
     """Select models for the demo."""
     # Start with models that are most likely to be available
     preferred_models = [
-        {"name": "gpt-3.5-turbo", "desc": "OpenAI GPT-3.5 Turbo (fast, good quality)"},
-        {"name": "ollama/llama2", "desc": "Ollama Llama2 (local, private)"},
-        {"name": "claude-3-haiku", "desc": "Anthropic Claude 3 Haiku (fast, capable)"}
+        {"name": "codestral:22b", "desc": "Codestral 22B (Mistral's code model with tool support)"},
+        {"name": "gpt-oss:20b", "desc": "GPT OSS 20B (open source, large model)"}
     ]
     
     print(f"\n🤖 Demo will test these models (if available):")
