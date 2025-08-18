@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""
+Continue CLI Demo Script
+
+Demonstrates the CN integration with Vibe Check benchmarks using real coding tasks.
+Shows fully automated AI benchmarking with no human intervention.
+"""
+
+import sys
+import time
+from pathlib import Path
+from datetime import datetime
+
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from benchmark.cn_integration.cn_batch_integration import CNBatchIntegration
+
+
+def print_banner():
+    """Print demo banner."""
+    print("\n" + "🤖" * 35)
+    print("     VIBE CHECK + CONTINUE CLI DEMO")  
+    print("🤖" * 35)
+    print("\n🚀 Fully Automated AI Coding Benchmarks")
+    print("📊 No human intervention required!")
+    print("⚡ Real AI agents solving real coding tasks")
+    print("\n" + "=" * 70)
+    time.sleep(2)
+
+
+def check_prerequisites():
+    """Check if Continue CLI is installed and ready."""
+    print("\n🔍 Checking prerequisites...")
+    
+    try:
+        from benchmark.cn_integration.cn_runner import CNRunner
+        runner = CNRunner()
+        print("✅ Continue CLI is available")
+        return True
+    except Exception as e:
+        print(f"❌ Continue CLI not available: {e}")
+        print("\n📦 Please install Continue CLI first:")
+        print("   npm i -g @continuedev/cli")
+        return False
+
+
+def select_demo_tasks():
+    """Select appropriate tasks for the demo."""
+    demo_tasks = [
+        "benchmark/tasks/easy/fix_typo.md",
+        "benchmark/tasks/easy/fix_calculator_typos.md", 
+        "benchmark/tasks/medium/add_validation.md"
+    ]
+    
+    available_tasks = []
+    for task in demo_tasks:
+        if Path(task).exists():
+            available_tasks.append(task)
+        else:
+            print(f"⚠️  Task not found: {task}")
+    
+    if not available_tasks:
+        print("❌ No demo tasks available")
+        return []
+    
+    print(f"\n📋 Selected {len(available_tasks)} demo tasks:")
+    for task in available_tasks:
+        task_name = Path(task).stem.replace('_', ' ').title()
+        print(f"   • {task_name}")
+    
+    return available_tasks
+
+
+def select_demo_models():
+    """Select models for the demo."""
+    # Start with models that are most likely to be available
+    preferred_models = [
+        {"name": "gpt-3.5-turbo", "desc": "OpenAI GPT-3.5 Turbo (fast, good quality)"},
+        {"name": "ollama/llama2", "desc": "Ollama Llama2 (local, private)"},
+        {"name": "claude-3-haiku", "desc": "Anthropic Claude 3 Haiku (fast, capable)"}
+    ]
+    
+    print(f"\n🤖 Demo will test these models (if available):")
+    for model in preferred_models:
+        print(f"   • {model['name']} - {model['desc']}")
+    
+    return [{"name": model["name"]} for model in preferred_models]
+
+
+def run_demo():
+    """Run the main demo."""
+    print_banner()
+    
+    # Check prerequisites
+    if not check_prerequisites():
+        return False
+    
+    # Select tasks and models
+    tasks = select_demo_tasks()
+    if not tasks:
+        return False
+    
+    models = select_demo_models()
+    
+    print(f"\n⏰ Demo starting at: {datetime.now().strftime('%H:%M:%S')}")
+    print(f"📝 Testing {len(models)} models on {len(tasks)} tasks")
+    print(f"🎯 Total combinations: {len(models) * len(tasks)}")
+    print("\n" + "🚀" * 20)
+    
+    # Initialize CN batch integration
+    try:
+        integration = CNBatchIntegration(verbose=True)
+        
+        # Run the demo batch
+        result = integration.run_batch_with_cn(
+            task_files=tasks,
+            models=models,
+            timeout=300  # 5 minutes per task for demo
+        )
+        
+        # Display results
+        print(f"\n{'=' * 70}")
+        print("🏆 DEMO COMPLETE!")
+        print(f"{'=' * 70}")
+        
+        success_rate = result.get('success_rate', 0)
+        total_time = result.get('total_time', 0)
+        
+        print(f"📊 Success Rate: {success_rate:.1f}%")
+        print(f"⏱️  Total Time: {total_time/60:.1f} minutes")
+        print(f"🤖 Models Tested: {result.get('models_tested', 0)}")
+        print(f"✅ Successful Runs: {result.get('successful', 0)}")
+        print(f"❌ Failed Runs: {result.get('failed', 0)}")
+        
+        # Show rankings if available
+        if result.get('rankings'):
+            rankings = result['rankings']
+            print(f"\n🏆 Performance Rankings:")
+            print(f"   🏃‍♂️ Fastest: {rankings.get('fastest', 'N/A')}")
+            print(f"   ⚡ Most Efficient: {rankings.get('most_efficient', 'N/A')}")
+        
+        # Show where results are saved
+        if 'batch_id' in result:
+            results_dir = Path(f"benchmark/results/{result['batch_id']}")
+            if results_dir.exists():
+                print(f"\n📁 Detailed results saved to: {results_dir}")
+                html_report = results_dir / "cn_batch_report.html"
+                if html_report.exists():
+                    print(f"🌐 View HTML report: file://{html_report.absolute()}")
+        
+        print(f"\n✨ Demo completed successfully!")
+        return True
+        
+    except Exception as e:
+        print(f"\n❌ Demo failed: {e}")
+        print("\n💡 Troubleshooting tips:")
+        print("   • Make sure Continue CLI is installed: npm i -g @continuedev/cli")
+        print("   • Check that you have API keys set up for commercial models")
+        print("   • For Ollama models, ensure Ollama is running: ollama serve")
+        return False
+
+
+def main():
+    """Main entry point."""
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print("Continue CLI Demo for Vibe Check")
+        print("\nThis demo shows automated AI benchmarking using Continue CLI.")
+        print("It runs coding tasks on multiple AI models with no human intervention.")
+        print("\nUsage: ./run_cn_demo")
+        print("\nPrerequisites:")
+        print("  • Continue CLI: npm i -g @continuedev/cli") 
+        print("  • API keys for commercial models (optional)")
+        print("  • Ollama for local models (optional)")
+        return
+    
+    success = run_demo()
+    
+    if success:
+        print("\n🎉 Thanks for trying the Continue CLI + Vibe Check demo!")
+        print("🔗 Learn more: https://docs.continue.dev/guides/cli")
+        print("⭐ Star us: https://github.com/continuedev/continue")
+    else:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
