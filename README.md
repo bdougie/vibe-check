@@ -1,252 +1,160 @@
 # Vibe Check - AI Coding Agent Benchmark Framework
 
-A benchmarking framework for evaluating human-in-the-loop AI coding agents. Test and compare how different AI models perform on real coding tasks with human collaboration.
+Test and compare how AI coding assistants perform on real development tasks. Track metrics, analyze results, and find the best AI model for your workflow.
 
-## 🚀 New to Vibe Check?
+## 🎯 What is Vibe Check?
 
-### Interactive Setup (Recommended)
+Vibe Check is a benchmarking framework for evaluating AI coding assistants in realistic development scenarios. Whether you're using Continue, Cursor, or CLI tools, Vibe Check helps you measure and compare AI model performance on actual coding tasks.
+
+## 🚀 Quick Start: Manual Benchmarking with Continue
+
+The fastest way to start benchmarking is using VS Code with the Continue extension - no command line needed!
+
+### Step 1: Install Continue Extension
+1. Open VS Code
+2. Install the [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
+3. Configure it with your preferred AI model (Ollama, OpenAI, Claude, etc.)
+
+### Step 2: Run Setup Wizard
 ```bash
 uv run setup_wizard.py
 ```
-The interactive wizard will guide you through:
-- Checking Python version and dependencies
-- Installing Ollama for local models
-- Downloading recommended models
-- Configuring the Continue extension
-- Running your first benchmark
+Select **"Manual with Continue"** when prompted for workflow preference.
 
-### Manual Setup
-**Start here → [QUICKSTART.md](QUICKSTART.md)** - Get from zero to running your first benchmark in 15 minutes!
+### Step 3: Start Your First Benchmark
+1. Open a benchmark task in VS Code:
+   ```bash
+   code benchmark/tasks/easy/fix_typo.md
+   ```
+2. Start session tracking:
+   ```bash
+   uv run benchmark/continue_session_tracker.py --start
+   ```
+3. Use Continue (Cmd+L / Ctrl+L) to solve the task with AI assistance
+4. Stop tracking when done:
+   ```bash
+   uv run benchmark/continue_session_tracker.py --stop
+   ```
+
+Your session metrics are automatically captured! View results with:
+```bash
+uv run benchmark/analyze.py
+```
+
+**📖 Full Manual Guide:** [docs/manual-benchmarking-guide.md](docs/manual-benchmarking-guide.md)
 
 ## 📚 Documentation
 
-For comprehensive documentation, see the [docs/](docs/) directory:
+### Getting Started
+- [**Manual Benchmarking Guide**](docs/manual-benchmarking-guide.md) - Complete guide for Continue workflow
+- [**Continue Setup**](docs/continue-setup.md) - Configure Continue for optimal benchmarking
+- [**Session Analysis**](docs/session-analysis.md) - Understanding your benchmark metrics
 - [**Quick Start Checklist**](QUICKSTART.md) - Step-by-step setup with checkboxes ✅
-- [**Setup Guide**](docs/setup.md) - Detailed setup instructions
-- [**Manual Guide**](docs/manual-guide.md) - In-depth tutorial
+
+### Advanced Topics
+- [**Automated CLI Benchmarking**](#automated-benchmarking-advanced) - Headless and batch operations
 - [**Git Tracking**](docs/git-tracking.md) - Automatic code change tracking
 - [**Storage System**](docs/storage.md) - Data persistence and format
 - [**All Documentation**](docs/README.md) - Complete documentation index
 
-## Quick Start
+## 🎯 Manual Benchmarking Workflow
 
-### Prerequisites
+```mermaid
+graph LR
+    A[Select Task] --> B[Start Session Tracking]
+    B --> C[Solve with Continue/AI]
+    C --> D[Stop Tracking]
+    D --> E[Auto-captured Metrics]
+    E --> F[Analyze Results]
+```
 
-- Python 3.8+ (uv will handle Python installation if needed)
-- [uv](https://github.com/astral-sh/uv) - Fast Python package and environment manager
-- Git (for tracking code changes)
-- [Continue VS Code extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) (optional)
-- [Ollama](https://ollama.com/) for local models (optional)
+### Why Manual Benchmarking?
+
+- **Realistic Testing** - Mimics actual development workflow
+- **Rich Metrics** - Captures conversation flow, edits, and thinking time
+- **No Setup Overhead** - Use your existing VS Code + Continue setup
+- **Immediate Feedback** - See results as you work
+
+## 📊 Metrics Tracked
+
+During manual benchmarking sessions, we automatically capture:
+
+- **Task Completion** - Success/failure and completion time
+- **AI Interactions** - Number of prompts and responses
+- **Code Changes** - Files modified, lines added/removed (via git)
+- **Session Flow** - Time between interactions, edit patterns
+- **Model Performance** - Response quality and accuracy
+
+## 🔧 Prerequisites
+
+### For Manual Benchmarking (Recommended)
+- VS Code with [Continue extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue)
+- Python 3.8+ and [uv](https://github.com/astral-sh/uv)
+- Git (for change tracking)
+- An AI model (Ollama, OpenAI, Claude, etc.)
 
 ### Installation
 
 ```bash
 # Install uv (fast Python package manager)
-# macOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
+curl -LsSf https://astral.sh/uv/install.sh | sh  # macOS/Linux
+# or
+brew install uv  # macOS with Homebrew
 
-# Or with Homebrew
-brew install uv
-
-# Windows
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Clone the repository
+# Clone and setup
 git clone https://github.com/bdougie/vibe-check.git
 cd vibe-check
-
-# Install dependencies with uv (10-100x faster than pip)
 uv pip sync requirements.txt
 ```
 
-## Usage
+## 📋 Available Tasks
 
-### 🔥 Quick Smoke Test (30 seconds)
+Browse benchmark tasks in `benchmark/tasks/`:
 
-Before running full benchmarks, verify your setup with a quick smoke test:
-
-```bash
-# Run the automated smoke test
-uv run run_smoke_test.py
-
-# Or run manually with any model
-uv run benchmark/task_runner.py "test_model" "benchmark/tasks/smoke/add_comment.md" --smoke-test --skip-ollama-check
-```
-
-The smoke test:
-- Takes less than 30 seconds
-- Verifies all components work together
-- Uses a simple "add a comment" task
-- Requires no model setup
-
-### 1. Run a Benchmark Task
-
-```bash
-# Using uv (recommended - handles dependencies automatically)
-uv run benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
-
-# Or using module syntax
-uv run -m benchmark.task_runner "ModelName" "benchmark/tasks/easy/fix_typo.md"
-```
-
-Example with specific models:
-```bash
-# Commercial models (using uv)
-uv run benchmark/task_runner.py "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
-uv run benchmark/task_runner.py "GPT-4o" "benchmark/tasks/medium/add_validation.md"
-
-# Local models via Ollama (automatic setup verification)
-uv run benchmark/task_runner.py "ollama/llama2" "benchmark/tasks/easy/add_gitignore_entry.md"
-uv run benchmark/task_runner.py "ollama/codellama" "benchmark/tasks/medium/add_validation.md"
-
-# Skip Ollama checks if you're sure everything is set up
-uv run benchmark/task_runner.py "ollama/mistral" "benchmark/tasks/easy/fix_typo.md" --skip-ollama-check
-```
-
-### 2. View Available Tasks
-
-```bash
-# Using uv (recommended)
-uv run benchmark/task_runner.py
-
-# Or using module syntax
-uv run -m benchmark.task_runner
-```
-
-This will list all available benchmark tasks organized by difficulty:
-- **Easy**: Simple fixes and additions (2-5 minutes)
-- **Medium**: Feature additions and validations (15-30 minutes)  
-- **Hard**: Refactoring and system design (1-3 hours)
-
-### 3. Verify Models (Essential Step)
-
-Check which AI models you have and what you need for benchmarking:
-
-```bash
-# Run comprehensive model verification
-uv run -m benchmark.model_verifier
-
-# Get download commands for missing models  
-uv run -m benchmark.model_verifier --download
-
-# Get model suggestions based on your system specs
-uv run -m benchmark.model_verifier --suggest
-
-# JSON output for automation
-uv run -m benchmark.model_verifier --json
-```
-
-The model verifier will:
-- ✅ Check your system resources (RAM, disk space)
-- ✅ List installed vs missing models
-- ✅ Recommend models based on your system
-- ✅ Provide download commands
-- ✅ Calculate disk space requirements
-
-For Ollama-specific checks:
-
-```bash
-# Check Ollama installation and service
-uv run -m benchmark.ollama_check
-
-# Check specific model availability
-uv run -m benchmark.ollama_check --model llama2
-
-# Auto-pull missing models
-uv run -m benchmark.ollama_check --model codellama --pull
-```
-
-### 4. Analyze Results
-
-View aggregated benchmark results:
-```bash
-# Using uv (recommended)
-uv run benchmark/analyze.py
-
-# Or using module syntax
-uv run -m benchmark.analyze
-```
-
-Export results to CSV for further analysis:
-```bash
-# Using uv
-uv run benchmark/analyze.py --export
-
-# With pandas visualization support
-uv run benchmark/analyze.py --visualize
-
-# Get help on available options
-uv run benchmark/analyze.py --help
-```
-
-### 5. Continue Integration (Optional)
-
-If using Continue VS Code extension, start benchmarks with:
-```bash
-uv run benchmark_task.py --start
-```
-
-## Benchmark Workflow
-
-1. **Start a task** - Run the task_runner with your chosen model and task
-2. **Solve with AI** - Use your AI tool to complete the task
-3. **Track metrics** - Note prompts sent and manual interventions
-4. **Complete benchmark** - Record success and metrics
-5. **Analyze results** - Compare performance across models and tasks
-
-## Metrics Tracked
-
-- **Task completion rate** - Success/failure ratio
-- **Time to completion** - How long tasks take
-- **Prompts sent** - Number of AI interactions
-- **Human interventions** - Manual corrections needed
-- **Code changes** - Files modified, lines added/removed
-- **Model comparison** - Performance across different AI models
-
-## Available Tasks
-
-### Easy Tasks
+### Easy Tasks (2-5 minutes)
 - `fix_typo.md` - Fix documentation typos
 - `add_gitignore_entry.md` - Update .gitignore file
+- `fix_calculator_typos.md` - Fix multiple typos in calculator
 
-### Medium Tasks  
+### Medium Tasks (15-30 minutes)
 - `add_validation.md` - Add input validation to functions
 - `add_export_feature.md` - Implement JSON export functionality
+- `add_data_processor_validation.md` - Add comprehensive validation
 
-### Hard Tasks
+### Hard Tasks (1-3 hours)
 - `refactor_metrics.md` - Refactor the metrics system
 - `implement_dashboard.md` - Build a web dashboard
+- `algorithm_optimization.md` - Optimize complex algorithms
 
-## Next Steps
+## 🚀 Automated Benchmarking (Advanced)
 
-### For Users
+For headless operation, batch testing, or CI/CD integration, use the CLI tools:
 
-1. **Run benchmarks** on your preferred AI models
-2. **Create custom tasks** based on your real-world needs
-3. **Share results** to contribute to community knowledge
-4. **Compare models** to find the best fit for your workflow
+### Run Automated Benchmarks
 
-### For Contributors
+```bash
+# Single task
+uv run benchmark/task_runner.py "ModelName" "benchmark/tasks/easy/fix_typo.md"
 
-1. **Add new tasks** - Create realistic coding challenges in `benchmark/tasks/`
-2. **Enhance metrics** - Add more sophisticated tracking (PR welcome!)
-3. **Improve analysis** - Add visualizations and statistical tests
-4. **Integration** - Add support for more AI tools and IDEs
+# Batch processing
+uv run benchmark/batch_runner.py --models "ollama/qwen2.5-coder:7b,gpt-4" --tasks "easy/*"
 
-### Planned Features
+# With specific models
+uv run benchmark/task_runner.py "Claude-3.5-Sonnet" "benchmark/tasks/easy/fix_typo.md"
+uv run benchmark/task_runner.py "ollama/codellama" "benchmark/tasks/medium/add_validation.md"
+```
 
-- [ ] Automatic prompt/response capture
-- [ ] Web dashboard for results visualization  
-- [ ] GitHub integration for real issue testing
-- [ ] Multi-model parallel testing
-- [ ] Difficulty auto-classification
-- [ ] Performance regression detection
-- [ ] Team leaderboards
-- [ ] Task recommendation engine
+### CLI Features
+- **Batch Processing** - Run multiple models and tasks automatically
+- **Headless Operation** - No UI required, perfect for CI/CD
+- **Parallel Execution** - Test multiple models simultaneously
+- **Programmatic Access** - Integrate with your existing toolchain
 
-## Creating Custom Tasks
+**📖 Full CLI Guide:** [docs/cli-benchmarking.md](docs/cli-benchmarking.md)
 
-Create a new task file in `benchmark/tasks/{difficulty}/` with this format:
+## 🎨 Creating Custom Tasks
+
+Create realistic benchmark tasks for your specific use case:
 
 ```markdown
 # Task: [Task Name]
@@ -258,32 +166,50 @@ Create a new task file in `benchmark/tasks/{difficulty}/` with this format:
 - [Requirement 1]
 - [Requirement 2]
 
-## Expected Outcome
-- [Expected result]
-
-**Time Estimate**: [X-Y minutes]
-
 ## Success Criteria
 - [ ] [Criterion 1]
 - [ ] [Criterion 2]
 ```
 
-## Advanced Setup
+Save in `benchmark/tasks/{difficulty}/your_task.md`
 
-For full Continue integration and local model setup, see [setup.md](docs/setup.md).
+## 🤝 Contributing
 
-## Data Privacy
+We welcome contributions! Areas of focus:
+
+- **New benchmark tasks** - Add realistic coding challenges
+- **Metric enhancements** - Improve tracking and analysis
+- **Model integrations** - Support for more AI providers
+- **Documentation** - Guides, tutorials, and examples
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## 📊 Data Privacy
 
 All benchmark results are stored locally in `benchmark/results/`. No data is sent to external services unless you explicitly share it.
 
-## Contributing
+## 🏗️ Roadmap
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+- [ ] Real-time session visualization
+- [ ] Web dashboard for results
+- [ ] GitHub issue import for tasks
+- [ ] Multi-model comparison UI
+- [ ] Team leaderboards
+- [ ] Performance regression alerts
 
-## License
+## 📄 License
 
-MIT
+MIT - See [LICENSE](LICENSE) for details.
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
-Built to evaluate and improve human-AI collaboration in software development. Special thanks to the Continue and Ollama projects for enabling local AI development.
+Built to improve human-AI collaboration in software development. Special thanks to:
+- [Continue](https://continue.dev) - Excellent VS Code AI extension
+- [Ollama](https://ollama.com) - Local model hosting
+- Our contributors and early users
+
+---
+
+**Questions?** Open an [issue](https://github.com/bdougie/vibe-check/issues) or check the [docs](docs/).
+
+**Ready to benchmark?** Start with the [manual guide](docs/manual-benchmarking-guide.md) or dive into [automated testing](docs/cli-benchmarking.md)!
