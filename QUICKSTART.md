@@ -1,114 +1,29 @@
 # 🚀 Vibe Check Quick Start Guide
 
-Welcome! This step-by-step checklist will get you from zero to running your first local model benchmark in about 15 minutes.
+Get started with AI benchmarking in 10 minutes! This guide prioritizes the manual benchmarking workflow with Continue for immediate, realistic testing.
+
+## Choose Your Path
+
+### 🎯 Manual Benchmarking (Recommended)
+**Best for**: Real-world testing, immediate feedback, natural AI interaction
+→ Continue with this guide
+
+### 🤖 Automated CLI Benchmarking
+**Best for**: Batch testing, CI/CD, headless operation
+→ See [CLI Benchmarking Guide](docs/cli-benchmarking.md)
 
 ## Prerequisites Checklist
 
 ### 📦 System Requirements
 
-- [ ] **Operating System**: macOS, Linux, or Windows with WSL2
-- [ ] **Memory**: At least 8GB RAM (16GB recommended for larger models)
-- [ ] **Storage**: 10GB free disk space for models
+- [ ] **VS Code** installed
+- [ ] **Python 3.8+** (uv will handle if needed)
+- [ ] **Memory**: 8GB RAM minimum (16GB for larger models)
+- [ ] **Storage**: 10GB free for models
 
-## Step 1: Install uv
+## Step 1: Install Continue Extension
 
-### Install uv Package Manager
-
-uv handles Python installation and package management automatically.
-
-- [ ] Install uv:
-  ```bash
-  # macOS/Linux
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  
-  # Or with Homebrew (macOS)
-  brew install uv
-  
-  # Windows
-  powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-
-- [ ] Verify uv is installed:
-  ```bash
-  uv --version
-  ```
-
-## Step 2: Project Setup
-
-### Clone and Install
-
-- [ ] Clone the repository:
-  ```bash
-  git clone https://github.com/bdougie/vibe-check.git
-  cd vibe-check
-  ```
-
-- [ ] Set up environment and install dependencies:
-  ```bash
-  # Create virtual environment and install dependencies
-  uv venv
-  uv pip sync requirements.txt
-  ```
-
-- [ ] Verify installation:
-  ```bash
-  uv run python -c "import pandas, yaml, pytest; print('✅ Dependencies installed')"
-  ```
-
-## Step 3: Ollama Setup
-
-### Install and Configure Ollama
-
-- [ ] Install Ollama:
-  - **macOS**: 
-    ```bash
-    brew install ollama
-    ```
-  - **Linux**: 
-    ```bash
-    curl -fsSL https://ollama.com/install.sh | sh
-    ```
-  - **Windows**: Download from [ollama.com](https://ollama.com/download)
-
-- [ ] Start Ollama service:
-  ```bash
-  ollama serve
-  ```
-  Keep this terminal window open!
-
-- [ ] Verify Ollama is running (in a new terminal):
-  ```bash
-  ollama list
-  ```
-
-## Step 4: Download a Model
-
-### Get Your First Model
-
-- [ ] Download recommended model (qwen2.5-coder:7b - good balance of speed and quality):
-  ```bash
-  ollama pull qwen2.5-coder:7b
-  ```
-  This will take 5-10 minutes depending on your internet speed.
-
-- [ ] Alternative smaller models (if limited on resources):
-  ```bash
-  # Smaller, faster option (3.8GB)
-  ollama pull deepseek-coder:1.3b
-  
-  # Or for general purpose
-  ollama pull llama3.2:3b
-  ```
-
-- [ ] Verify model is downloaded:
-  ```bash
-  ollama list
-  ```
-  You should see your model listed!
-
-## Step 5: VS Code and Continue Setup
-
-### Install Continue Extension
+### Get VS Code Ready for AI Benchmarking
 
 - [ ] Open VS Code
 
@@ -117,102 +32,179 @@ uv handles Python installation and package management automatically.
   - Search for "Continue"
   - Install the extension by Continue.dev
 
-- [ ] Generate Continue configuration:
+- [ ] Configure your first AI model in Continue:
+  - Open Continue settings (`Cmd+Shift+P` → "Continue: Open Settings")
+  - Choose your model type:
+    - **Cloud models** (OpenAI, Claude): Add API key
+    - **Local models** (Ollama): See Step 3
+    - **Free tier**: Use Continue's free tier
+
+## Step 2: Project Setup
+
+### Get Vibe Check
+
+- [ ] Install uv (fast Python package manager):
+  ```bash
+  # macOS/Linux
+  curl -LsSf https://astral.sh/uv/install.sh | sh
+  
+  # Windows
+  powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+  ```
+
+- [ ] Clone and setup:
+  ```bash
+  git clone https://github.com/bdougie/vibe-check.git
+  cd vibe-check
+  uv pip sync requirements.txt
+  ```
+
+- [ ] Run interactive setup wizard:
+  ```bash
+  uv run setup_wizard.py
+  ```
+  Select "Manual with Continue" when prompted
+
+## Step 3: AI Model Setup
+
+### Option A: Use Cloud Models (Fastest)
+
+If you have API keys for OpenAI, Anthropic, or other providers:
+
+- [ ] Add to Continue config:
+  ```json
+  {
+    "models": [{
+      "title": "Claude 3.5",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "apiKey": "YOUR_KEY"
+    }]
+  }
+  ```
+
+### Option B: Use Local Models with Ollama
+
+For free, private, offline testing:
+
+- [ ] Install Ollama:
+  ```bash
+  # macOS
+  brew install ollama
+  
+  # Linux
+  curl -fsSL https://ollama.com/install.sh | sh
+  ```
+
+- [ ] Start Ollama:
+  ```bash
+  ollama serve  # Keep this running
+  ```
+
+- [ ] Download a model:
+  ```bash
+  # Recommended for benchmarking
+  ollama pull qwen2.5-coder:7b
+  
+  # Smaller option
+  ollama pull deepseek-coder:1.3b
+  ```
+
+- [ ] Auto-configure Continue:
   ```bash
   uv run benchmark/continue_config_generator.py
   ```
-  - Answer `n` for OpenAI and Anthropic keys (unless you have them)
-  - The script will auto-detect your Ollama models
 
-- [ ] Restart VS Code to load the configuration
+## Step 4: Run Your First Manual Benchmark
 
-- [ ] Test Continue:
-  - Open any code file
+### Manual Benchmarking Session
+
+- [ ] Start session tracking:
+  ```bash
+  uv run benchmark/continue_session_tracker.py --start
+  ```
+
+- [ ] Open a task in VS Code:
+  ```bash
+  code benchmark/tasks/easy/fix_typo.md
+  ```
+
+- [ ] Solve with Continue:
+  - Read the task requirements
   - Press `Cmd+L` (Mac) or `Ctrl+L` (Windows/Linux)
-  - Type "Hello" and see if the model responds
+  - Ask Continue to help solve the task
+  - Apply suggested changes
 
-## Step 6: Run Your First Benchmark
-
-### Smoke Test (30-second validation)
-
-- [ ] Run the smoke test:
+- [ ] Stop session when done:
   ```bash
-  uv run run_smoke_test.py
-  ```
-  
-  This will:
-  - Create a sample project
-  - Run a simple task (fix a typo)
-  - Complete in about 30 seconds
-  - Save results automatically
-
-- [ ] Alternative: Run a specific benchmark:
-  ```bash
-  uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/fix_typo.md"
+  uv run benchmark/continue_session_tracker.py --stop
   ```
 
-## Step 7: View Your Results
+### Quick Smoke Test (Optional)
 
-### Analyze Benchmark Results
+For automated validation:
+```bash
+uv run run_smoke_test.py
+```
 
-- [ ] View results summary:
+## Step 5: View Your Results
+
+### Analyze Your Session
+
+- [ ] View latest session results:
+  ```bash
+  uv run benchmark/analyze.py --session latest
+  ```
+
+- [ ] See all sessions:
   ```bash
   uv run benchmark/analyze.py
   ```
 
-- [ ] Check the results file:
-  ```bash
-  ls -la benchmark/results/
-  ```
-  Your results are saved as JSON files with timestamps
-
-- [ ] Review metrics:
+- [ ] Metrics captured:
   - Task completion status
-  - Time taken
-  - Number of prompts
-  - Files modified (automatically tracked)
-  - Lines added/removed
+  - Total duration and interaction count
+  - Prompt/response patterns
+  - Code changes (via git)
+  - Model performance
 
 ## 🎉 Success Checklist
 
-You've successfully completed your first benchmark when:
+You've completed your first manual benchmark when:
 
-- [ ] Ollama is running with at least one model
-- [ ] Continue extension is working in VS Code
-- [ ] Smoke test completed successfully
-- [ ] Results file was generated in `benchmark/results/`
-- [ ] You can see metrics with `uv run benchmark/analyze.py`
+- [ ] Continue extension is configured and working
+- [ ] Session tracking captured your interactions
+- [ ] Task was completed with AI assistance
+- [ ] Results show in `uv run benchmark/analyze.py`
+- [ ] Metrics include prompts, duration, and code changes
 
 ## 📊 Next Steps
 
-### Run More Benchmarks
+### Continue Manual Benchmarking
 
-1. **Try different difficulty levels:**
-   ```bash
-   # Easy task
-   uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/easy/add_gitignore_entry.md"
-   
-   # Medium task
-   uv run benchmark/task_runner.py "ollama/qwen2.5-coder:7b" "benchmark/tasks/medium/add_validation.md"
-   ```
+1. **Try harder tasks:**
+   - Easy: `benchmark/tasks/easy/`
+   - Medium: `benchmark/tasks/medium/`
+   - Hard: `benchmark/tasks/hard/`
 
-2. **Compare different models:**
-   ```bash
-   # Download another model
-   ollama pull codestral:latest
-   
-   # Run same task with different model
-   uv run benchmark/task_runner.py "ollama/codestral" "benchmark/tasks/easy/fix_typo.md"
-   ```
+2. **Compare models:**
+   - Switch models in Continue settings
+   - Run same task with different models
+   - Compare metrics with `uv run benchmark/analyze.py`
 
-3. **Analyze and compare results:**
-   ```bash
-   # View all results
-   uv run benchmark/analyze.py
-   
-   # Export to CSV for analysis
-   uv run benchmark/analyze.py --export
-   ```
+3. **Advanced features:**
+   - Create custom tasks
+   - Export results to CSV
+   - Set up automated workflows
+
+### Try Automated Benchmarking
+
+For batch testing without UI:
+```bash
+uv run benchmark/task_runner.py "model-name" "task.md"
+```
+
+See [CLI Benchmarking Guide](docs/cli-benchmarking.md) for details.
 
 ## 🐛 Troubleshooting
 
@@ -282,11 +274,15 @@ uv run benchmark/task_runner.py
 
 ## 📚 Additional Resources
 
-- **[Full Documentation](docs/README.md)** - Comprehensive guides
-- **[Model Setup Guide](docs/models.md)** - Configure different AI models  
-- **[Task Creation](docs/manual-guide.md)** - Create custom benchmark tasks
-- **[Troubleshooting Guide](docs/ollama.md)** - Detailed Ollama troubleshooting
-- **[Continue Docs](https://docs.continue.dev)** - Continue extension documentation
+### Manual Benchmarking
+- **[Manual Benchmarking Guide](docs/manual-benchmarking-guide.md)** - Complete guide
+- **[Continue Setup](docs/continue-setup.md)** - Advanced configuration
+- **[Session Analysis](docs/session-analysis.md)** - Understanding metrics
+
+### Advanced Topics
+- **[CLI Benchmarking](docs/cli-benchmarking.md)** - Automated testing
+- **[Task Creation](docs/task-creation.md)** - Custom benchmarks
+- **[All Documentation](docs/README.md)** - Complete index
 
 ## 💡 Pro Tips
 
